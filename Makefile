@@ -5,6 +5,7 @@ export PROJECT_ROOT=$(shell pwd)
 export DOCKER_USER=$(shell id -u):$(shell id -g)
 
 env-up:
+	@mkdir -p ${PROJECT_ROOT}/out/
 	@docker compose up -d vpnbot-postgres
 
 env-down:
@@ -19,6 +20,12 @@ env-cleanup:
 	else \
 		echo "Очистка окружения отменена"; \
 	fi
+
+env-port-forward:
+	@docker compose up -d port-forwarder
+
+env-port-close:
+	@docker compose down port-forwarder
 
 migrate-create:
 	@if [ -z "$(seq)" ]; then \
@@ -48,8 +55,26 @@ migrate-action:
 		-database postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@vpnbot-postgres:5432/${POSTGRES_DB}?sslmode=disable \
 		$(action)
 
-env-port-forward:
-	@docker compose up -d port-forwarder
+logs-cleanup:
+	@read -p "Очистить все log файлы? Опасность утери логов. [y/N]: " ans; \
+	if [ "$$ans" = "y" ]; then \
+		rm -rf ${PROJECT_ROOT}/out/logs && \
+		echo "Файлы логов очищены"; \
+	else \
+		echo "Очистка логов отменена"; \
+	fi
 
-env-port-close:
-	@docker compose down port-forwarder
+vpnbot-run:
+	@export LOGGER_FOLDER=${PROJECT_ROOT}/out/logs && \
+	export POSTGRES_HOST=localhost && \
+	go mod tidy && \
+	go run ${PROJECT_ROOT}/cmd/vpnbot/main.go
+
+vpnbot-deploy:
+	@docker compose up -d --build vpnbot
+
+vpnbot-undeploy:
+	@docker compose down vpnbot
+
+ps:
+	@docker compose ps
