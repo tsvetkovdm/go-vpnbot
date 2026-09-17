@@ -16,7 +16,7 @@ CREATE TABLE users (
 CREATE TABLE admins (
     id          BIGSERIAL   PRIMARY KEY,
     telegram_id BIGINT      NOT NULL UNIQUE,
-    is_super    BOOL        NOT NULL DEFAULT false,
+    role        VARCHAR(20) NOT NULL DEFAULT 'admin' CHECK (role IN ('super', 'admin', 'support')),
     added_by    BIGINT      REFERENCES admins(id),
     created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
 );
