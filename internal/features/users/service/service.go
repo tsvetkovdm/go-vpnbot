@@ -20,6 +20,21 @@ type UsersRepository interface {
 		ctx context.Context,
 		telegramID int64,
 	) (domain.User, error)
+
+	BlockUser(
+		ctx context.Context,
+		telegramID int64,
+	) error
+
+	UnblockUser(
+		ctx context.Context,
+		telegramID int64,
+	) error
+
+	DeleteUser(
+		ctx context.Context,
+		telegramID int64,
+	) error
 }
 
 func NewUsersService(
