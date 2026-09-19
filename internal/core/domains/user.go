@@ -15,11 +15,6 @@ const (
 	StatusBlocked Status = "blocked"
 )
 
-const (
-	UninitializedID      int64 = -1
-	UninitializedVersion int64 = -1
-)
-
 type User struct {
 	ID         int64
 	Version    int64
