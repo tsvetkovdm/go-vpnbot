@@ -5,14 +5,15 @@ services:
       dockerfile: ${PROJECT_ROOT}/cmd/vpnbot/Dockerfile
     container_name: vpnbot
     depends_on:
-      vpnbot-postgres-migrate:
-        condition: service_completed_successfully
+      vpnbot-postgres:
+        condition: service_healthy
     network_mode: host
     environment:
       - TG_TOKEN=${TG_TOKEN}
       - TG_PROXY_ADDR=${TG_PROXY_ADDR}
       - TG_POLL_TIMEOUT=${TG_POLL_TIMEOUT}
       - TG_SHUTDOWN_TIMEOUT=${TG_SHUTDOWN_TIMEOUT}
+      - TG_SUPER_ADMIN_ID=${TG_SUPER_ADMIN_ID}
       - POSTGRES_HOST=${POSTGRES_HOST}
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
