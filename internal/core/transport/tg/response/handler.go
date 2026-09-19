@@ -1,9 +1,11 @@
 package core_tg_response
 
 import (
+	"errors"
 	"fmt"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	core_errors "github.com/tsvetkovdm/go-vpnbot/internal/core/errors"
 	core_logger "github.com/tsvetkovdm/go-vpnbot/internal/core/logger"
 	core_tg_request "github.com/tsvetkovdm/go-vpnbot/internal/core/transport/tg/request"
 	"go.uber.org/zap"
@@ -38,8 +40,25 @@ func (h *TGResponseHandler) TextResponse(text string) {
 }
 
 func (h *TGResponseHandler) ErrorResponse(err error, msg string) {
-	h.log.Error(msg, zap.Error(err))
-	h.TextResponse("Что-то пошло не так, попробуйте позже.")
+	var (
+		userText string
+		logFunc  func(string, ...zap.Field)
+	)
+
+	switch {
+	case errors.Is(err, core_errors.ErrInvalidArgument):
+		userText = "Некорректные данные, попробуйте ещё раз."
+		logFunc = h.log.Warn
+	case errors.Is(err, core_errors.ErrNotFound):
+		userText = "Пользователь с таким telegram_id не найден."
+		logFunc = h.log.Debug
+	default:
+		userText = "Что-то пошло не так, попробуйте позже."
+		logFunc = h.log.Error
+	}
+
+	logFunc(msg, zap.Error(err))
+	h.TextResponse(userText)
 }
 
 func (h *TGResponseHandler) PanicResponse(p any, msg string) {
