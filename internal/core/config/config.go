@@ -3,11 +3,15 @@ package core_config
 import (
 	"fmt"
 	"os"
+	"strconv"
 	"time"
+
+	core_errors "github.com/tsvetkovdm/go-vpnbot/internal/core/errors"
 )
 
 type Config struct {
-	TimeZone *time.Location
+	TimeZone             *time.Location
+	SuperAdminTelegramID int64
 }
 
 func NewConfig() (*Config, error) {
@@ -21,8 +25,15 @@ func NewConfig() (*Config, error) {
 		return nil, fmt.Errorf("load time zone: %s: %w", tz, err)
 	}
 
+	arg := os.Getenv("TG_SUPER_ADMIN_ID")
+	telegramID, err := strconv.ParseInt(arg, 10, 64)
+	if err != nil {
+		return nil, fmt.Errorf("parse telegram_id %q: %w", arg, core_errors.ErrInvalidArgument)
+	}
+
 	return &Config{
-		TimeZone: zone,
+		TimeZone:             zone,
+		SuperAdminTelegramID: telegramID,
 	}, nil
 }
 
