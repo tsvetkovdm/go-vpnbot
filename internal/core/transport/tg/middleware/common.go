@@ -36,8 +36,19 @@ func Trace() Middleware {
 
 			before := time.Now()
 
+			var command, args string
+			if update.Message != nil {
+				command = update.Message.Command()
+				args = update.Message.CommandArguments()
+			} else if update.CallbackQuery != nil {
+				command = "callback"
+				args = update.CallbackQuery.Data
+			}
+
 			log.Debug(
 				">>> incoming tg request",
+				zap.String("command", command),
+				zap.String("arguments", args),
 				zap.Time("time", before.UTC()),
 			)
 

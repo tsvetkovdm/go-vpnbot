@@ -30,10 +30,7 @@ func (h *UsersTGHandler) Start(
 
 	userDomain, err := h.usersService.GetOrCreateUser(ctx, userDomain)
 	if err != nil {
-		responseHandler.ErrorResponse(
-			err,
-			"failed to create user",
-		)
+		responseHandler.ErrorResponse(err, "failed to create user")
 		return
 	}
 
