@@ -20,7 +20,7 @@ func (r *AdminsRepository) GetAdminByTelegramID(
 	query := `
 	SELECT id, telegram_id, role, added_by, created_at
 	FROM vpnbot.admins
-	WHERE telegram_id=$1
+	WHERE telegram_id=$1;
 	`
 
 	row := r.pool.QueryRow(
