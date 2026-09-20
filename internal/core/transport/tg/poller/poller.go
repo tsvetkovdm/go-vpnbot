@@ -39,7 +39,7 @@ func (p *TGPoller) Run(ctx context.Context) error {
 	handler := core_tg_middleware.ChainMiddleware(p.router.Dispatch, p.middleware...)
 
 	updateConfig := tgbotapi.NewUpdate(-1)
-	updateConfig.Timeout = int(p.config.PollTimeout)
+	updateConfig.Timeout = int(p.config.PollTimeout.Seconds())
 
 	p.log.Warn("start TG poller")
 	ch := p.bot.GetUpdatesChan(updateConfig)

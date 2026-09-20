@@ -38,6 +38,10 @@ func (h *UsersTGHandler) Start(
 }
 
 func mainMenuText(user domain.User) string {
+	username := "не указан"
+	if user.Username != nil {
+		username = *user.Username
+	}
 	return fmt.Sprintf(
 		`
 		Добро пожаловать, %s!
@@ -48,7 +52,7 @@ func mainMenuText(user domain.User) string {
 		CreatedAt: %s
 		UpdatedAt: %s
 		`,
-		*user.Username,
+		username,
 		user.TelegramID,
 		user.Email,
 		user.XrayUUID,
