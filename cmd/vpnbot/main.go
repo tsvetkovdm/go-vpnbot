@@ -60,9 +60,9 @@ func main() {
 	logger.Debug("initializing feature", zap.String("feature", "admins"))
 	adminsRepository := admins_postgres_repository.NewAdminsRepository(pool)
 	adminsService := admins_service.NewAdminsService(adminsRepository)
-	adminsTransportTG := admins_transport_tg.NewAdminsTGHandler(bot, adminsService)
 	adminOnly := core_tg_middleware.AdminOnly(bot, adminsService)
-
+	superAdminOnly := core_tg_middleware.SuperAdminOnly(bot, adminsService)
+	adminsTransportTG := admins_transport_tg.NewAdminsTGHandler(bot, adminsService, superAdminOnly)
 	if err := adminsService.EnsureSuperAdmin(ctx, cfg.SuperAdminTelegramID); err != nil {
 		logger.Fatal("failed to ensure super admin", zap.Error(err))
 	}
@@ -84,9 +84,9 @@ func main() {
 		bot,
 		pollerConfig,
 		logger,
+		core_tg_middleware.Panic(bot),
 		core_tg_middleware.Logger(logger),
 		core_tg_middleware.Trace(),
-		core_tg_middleware.Panic(bot),
 	)
 
 	if err := poller.Run(ctx); err != nil {

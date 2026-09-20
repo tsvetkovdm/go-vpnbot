@@ -20,6 +20,16 @@ type AdminsRepository interface {
 		ctx context.Context,
 		admin domain.Admin,
 	) error
+
+	AddAdmin(
+		ctx context.Context,
+		admin domain.Admin,
+	) (domain.Admin, error)
+
+	RemoveAdmin(
+		ctx context.Context,
+		telegramID int64,
+	) error
 }
 
 func NewAdminsService(

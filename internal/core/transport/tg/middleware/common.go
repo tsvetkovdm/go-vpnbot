@@ -12,6 +12,25 @@ import (
 	"go.uber.org/zap"
 )
 
+func Panic(bot *tgbotapi.BotAPI) Middleware {
+	return func(next core_tg_handler.Handler) core_tg_handler.Handler {
+		return func(ctx context.Context, update tgbotapi.Update) {
+			defer func() {
+				if p := recover(); p != nil {
+					log := core_logger.FromContext(ctx)
+					responseHandler := core_tg_response.NewTGResponseHandler(log, update, bot)
+					responseHandler.PanicResponse(
+						p,
+						"during handle tg request go unexpected panic",
+					)
+				}
+			}()
+
+			next(ctx, update)
+		}
+	}
+}
+
 func Logger(log *core_logger.Logger) Middleware {
 	return func(next core_tg_handler.Handler) core_tg_handler.Handler {
 		return func(ctx context.Context, update tgbotapi.Update) {
@@ -58,25 +77,6 @@ func Trace() Middleware {
 				"<<< done tg request",
 				zap.Duration("latency", time.Since(before)),
 			)
-		}
-	}
-}
-
-func Panic(bot *tgbotapi.BotAPI) Middleware {
-	return func(next core_tg_handler.Handler) core_tg_handler.Handler {
-		return func(ctx context.Context, update tgbotapi.Update) {
-			defer func() {
-				if p := recover(); p != nil {
-					log := core_logger.FromContext(ctx)
-					responseHandler := core_tg_response.NewTGResponseHandler(log, update, bot)
-					responseHandler.PanicResponse(
-						p,
-						"during handle tg request go unexpected panic",
-					)
-				}
-			}()
-
-			next(ctx, update)
 		}
 	}
 }

@@ -23,24 +23,60 @@ type AdminsService interface {
 func AdminOnly(bot *tgbotapi.BotAPI, adminsService AdminsService) Middleware {
 	return func(next core_tg_handler.Handler) core_tg_handler.Handler {
 		return func(ctx context.Context, update tgbotapi.Update) {
+			log := core_logger.FromContext(ctx)
+			responseHandler := core_tg_response.NewTGResponseHandler(log, update, bot)
+
 			user := core_tg_request.FromUser(update)
-			_, err := adminsService.GetAdminByTelegramID(ctx, user.ID)
+			_, ok, err := checkAdmin(ctx, adminsService, user.ID)
 			if err != nil {
-				log := core_logger.FromContext(ctx)
-				responseHandler := core_tg_response.NewTGResponseHandler(
-					log,
-					update,
-					bot,
-				)
-				if errors.Is(err, core_errors.ErrNotFound) {
-					responseHandler.TextResponse("Нет доступа.")
-					return
-				}
 				responseHandler.ErrorResponse(err, "failed to check admin access")
+				return
+			}
+
+			if !ok {
 				return
 			}
 
 			next(ctx, update)
 		}
 	}
+}
+
+func SuperAdminOnly(bot *tgbotapi.BotAPI, adminsService AdminsService) Middleware {
+	return func(next core_tg_handler.Handler) core_tg_handler.Handler {
+		return func(ctx context.Context, update tgbotapi.Update) {
+			log := core_logger.FromContext(ctx)
+			responseHandler := core_tg_response.NewTGResponseHandler(log, update, bot)
+
+			user := core_tg_request.FromUser(update)
+
+			admin, ok, err := checkAdmin(ctx, adminsService, user.ID)
+			if err != nil {
+				responseHandler.ErrorResponse(err, "failed to check admin access")
+				return
+			}
+
+			if !ok || admin.Role != domain.RoleSuper {
+				return
+			}
+
+			next(ctx, update)
+		}
+	}
+}
+
+func checkAdmin(
+	ctx context.Context,
+	adminsService AdminsService,
+	telegramID int64,
+) (domain.Admin, bool, error) {
+	admin, err := adminsService.GetAdminByTelegramID(ctx, telegramID)
+	if err != nil {
+		if errors.Is(err, core_errors.ErrNotFound) {
+			return domain.Admin{}, false, nil
+		}
+		return domain.Admin{}, false, err
+	}
+
+	return admin, true, nil
 }
