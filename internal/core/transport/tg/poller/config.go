@@ -9,7 +9,7 @@ import (
 
 type Config struct {
 	PollTimeout     time.Duration `envconfig:"POLL_TIMEOUT" required:"true"`
-	ShutdownTimeout time.Duration `envconfig:"SHUTDOWN_TIMEOUT" default:"true"`
+	ShutdownTimeout time.Duration `envconfig:"SHUTDOWN_TIMEOUT" required:"true"`
 }
 
 func NewConfig() (Config, error) {
