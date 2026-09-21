@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"time"
 
+	decimal "github.com/jackc/pgx-shopspring-decimal"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	core_postgres_pool "github.com/tsvetkovdm/go-vpnbot/internal/core/repository/postgres/pool"
 )
@@ -30,6 +32,11 @@ func NewPool(
 	cfg, err := pgxpool.ParseConfig(connectionString)
 	if err != nil {
 		return nil, fmt.Errorf("parse pgxconfig: %w", err)
+	}
+
+	cfg.AfterConnect = func(_ context.Context, conn *pgx.Conn) error {
+		decimal.Register(conn.TypeMap())
+		return nil
 	}
 
 	pool, err := pgxpool.NewWithConfig(ctx, cfg)
