@@ -12,11 +12,15 @@ import (
 	core_logger "github.com/tsvetkovdm/go-vpnbot/internal/core/logger"
 	core_pgx_pool "github.com/tsvetkovdm/go-vpnbot/internal/core/repository/postgres/pool/pgx"
 	core_tg_client "github.com/tsvetkovdm/go-vpnbot/internal/core/transport/tg/client"
+	core_tg_dialog "github.com/tsvetkovdm/go-vpnbot/internal/core/transport/tg/dialog"
 	core_tg_middleware "github.com/tsvetkovdm/go-vpnbot/internal/core/transport/tg/middleware"
 	core_tg_poller "github.com/tsvetkovdm/go-vpnbot/internal/core/transport/tg/poller"
 	admins_postgres_repository "github.com/tsvetkovdm/go-vpnbot/internal/features/admins/repository/postgres"
 	admins_service "github.com/tsvetkovdm/go-vpnbot/internal/features/admins/service"
 	admins_transport_tg "github.com/tsvetkovdm/go-vpnbot/internal/features/admins/transport/tg"
+	plans_postgres_repository "github.com/tsvetkovdm/go-vpnbot/internal/features/plans/repository/postgres"
+	plans_service "github.com/tsvetkovdm/go-vpnbot/internal/features/plans/service"
+	plans_transport_tg "github.com/tsvetkovdm/go-vpnbot/internal/features/plans/transport/tg"
 	users_postgres_repository "github.com/tsvetkovdm/go-vpnbot/internal/features/users/repository/postgres"
 	users_service "github.com/tsvetkovdm/go-vpnbot/internal/features/users/service"
 	users_transport_tg "github.com/tsvetkovdm/go-vpnbot/internal/features/users/transport/tg"
@@ -72,11 +76,28 @@ func main() {
 	usersService := users_service.NewUsersService(usersRepository)
 	usersTransportTG := users_transport_tg.NewUsersTGHandler(bot, usersService, adminOnly)
 
+	logger.Debug("initializing feature", zap.String("feature", "plans"))
+	plansRepository := plans_postgres_repository.NewPlansRepository(pool)
+	plansService := plans_service.NewPlansService(plansRepository)
+	dialogStore := core_tg_dialog.NewStore(15 * time.Minute)
+	plansTransportTG := plans_transport_tg.NewPlansTGHandler(
+		bot,
+		plansService,
+		adminOnly,
+		dialogStore,
+	)
+
 	logger.Debug("initializing TG poller")
 
 	router := core_tg_poller.NewRouter()
 	router.RegisterRoutes(usersTransportTG.Routes()...)
 	router.RegisterRoutes(adminsTransportTG.Routes()...)
+	router.RegisterRoutes(plansTransportTG.Routes()...)
+
+	flows := make(map[string]core_tg_dialog.Flow)
+	for _, flow := range plansTransportTG.Flows() {
+		flows[flow.ID] = flow
+	}
 
 	pollerConfig := core_tg_poller.NewConfigMust()
 	poller := core_tg_poller.NewTGPoller(
@@ -87,6 +108,7 @@ func main() {
 		core_tg_middleware.Panic(bot),
 		core_tg_middleware.Logger(logger),
 		core_tg_middleware.Trace(),
+		core_tg_middleware.Dialog(bot, dialogStore, flows),
 	)
 
 	if err := poller.Run(ctx); err != nil {
