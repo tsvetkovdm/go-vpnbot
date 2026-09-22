@@ -36,7 +36,7 @@ func stepAwaitTitle() core_tg_dialog.Step {
 				}
 			}
 
-			session.Data["title"] = text
+			session.Data[dataKeyTitle] = text
 
 			return core_tg_dialog.Result{
 				Kind: core_tg_dialog.Advance,
@@ -66,9 +66,9 @@ func stepAwaitDurationUnit() core_tg_dialog.Step {
 
 			switch strings.ToLower(text[0]) {
 			case "месяцы", "м":
-				session.Data["duration_unit"] = DurationUnitMonth
+				session.Data[dataKeyDurationUnit] = DurationUnitMonth
 			case "дни", "д":
-				session.Data["duration_unit"] = DurationUnitDays
+				session.Data[dataKeyDurationUnit] = DurationUnitDays
 			default:
 				return core_tg_dialog.Result{
 					Kind:    core_tg_dialog.Retry,
@@ -118,7 +118,7 @@ func stepAwaitDurationValue() core_tg_dialog.Step {
 				}
 			}
 
-			switch session.Data["duration_unit"] {
+			switch session.Data[dataKeyDurationUnit] {
 			case DurationUnitMonth:
 				if val > 24 {
 					return core_tg_dialog.Result{
@@ -126,8 +126,8 @@ func stepAwaitDurationValue() core_tg_dialog.Step {
 						Message: "Количество месяцев не должно превышать 24.",
 					}
 				}
-				session.Data["duration_month"] = text
-				session.Data["duration_days"] = "0"
+				session.Data[dataKeyDurationMonths] = text
+				session.Data[dataKeyDurationDays] = "0"
 			case DurationUnitDays:
 				if val > 366 {
 					return core_tg_dialog.Result{
@@ -135,8 +135,8 @@ func stepAwaitDurationValue() core_tg_dialog.Step {
 						Message: "Количество дней не должно превышать 366.",
 					}
 				}
-				session.Data["duration_days"] = text
-				session.Data["duration_month"] = "0"
+				session.Data[dataKeyDurationDays] = text
+				session.Data[dataKeyDurationMonths] = "0"
 			}
 
 			return core_tg_dialog.Result{
@@ -174,9 +174,9 @@ func stepAwaitPrice(plansService PlansService) core_tg_dialog.Step {
 				}
 			}
 
-			title := session.Data["title"]
-			month, _ := strconv.Atoi(session.Data["duration_month"])
-			days, _ := strconv.Atoi(session.Data["duration_days"])
+			title := session.Data[dataKeyTitle]
+			month, _ := strconv.Atoi(session.Data[dataKeyDurationMonths])
+			days, _ := strconv.Atoi(session.Data[dataKeyDurationDays])
 
 			duration := domain.NewDuration(int32(month), int32(days), 0)
 

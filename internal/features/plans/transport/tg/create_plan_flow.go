@@ -9,6 +9,13 @@ const (
 	StepAwaitPrice         core_tg_dialog.StepID = "create_plan.await_price"
 )
 
+const (
+	dataKeyTitle          string = "title"
+	dataKeyDurationUnit   string = "duration_unit"
+	dataKeyDurationMonths string = "duration_month"
+	dataKeyDurationDays   string = "duration_days"
+)
+
 func newCreatePlanFlow(plansService PlansService) core_tg_dialog.Flow {
 	return core_tg_dialog.NewFlow(
 		"create_plan",
