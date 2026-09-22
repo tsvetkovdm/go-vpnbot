@@ -14,8 +14,8 @@ import (
 )
 
 const (
-	DurationUnitMonth string = "month"
-	DurationUnitDays  string = "days"
+	DurationUnitMonths string = "months"
+	DurationUnitDays   string = "days"
 )
 
 func stepAwaitTitle() core_tg_dialog.Step {
@@ -64,11 +64,14 @@ func stepAwaitDurationUnit() core_tg_dialog.Step {
 				}
 			}
 
+			var message string
 			switch strings.ToLower(text[0]) {
 			case "месяцы", "м":
-				session.Data[dataKeyDurationUnit] = DurationUnitMonth
+				session.Data[dataKeyDurationUnit] = DurationUnitMonths
+				message = "Введите длительность тарифа в месяцах"
 			case "дни", "д":
 				session.Data[dataKeyDurationUnit] = DurationUnitDays
+				message = "Введите длительность тарифа в днях"
 			default:
 				return core_tg_dialog.Result{
 					Kind:    core_tg_dialog.Retry,
@@ -77,25 +80,18 @@ func stepAwaitDurationUnit() core_tg_dialog.Step {
 			}
 
 			return core_tg_dialog.Result{
-				Kind: core_tg_dialog.Advance,
-				Next: StepAwaitDurationValue,
+				Kind:    core_tg_dialog.Advance,
+				Next:    StepAwaitDurationValue,
+				Message: message,
 			}
 		},
 	}
 }
 
 func stepAwaitDurationValue() core_tg_dialog.Step {
-	//var enter string
-	//switch session.Data["duration_unit"] {
-	//case DurationUnitMonth:
-	//	enter = "Введите длительность тарифа в месяцах"
-	//case DurationUnitDays:
-	//	enter = "Введите длительность тарифа в днях"
-	//}
-
 	return core_tg_dialog.Step{
 		ID:    StepAwaitDurationValue,
-		Enter: "Введите длительность тарифа в месяцах",
+		Enter: "Введите длительность тарифа в месяцах/днях",
 		OnInput: func(
 			ctx context.Context,
 			session *core_tg_dialog.Session,
@@ -119,7 +115,7 @@ func stepAwaitDurationValue() core_tg_dialog.Step {
 			}
 
 			switch session.Data[dataKeyDurationUnit] {
-			case DurationUnitMonth:
+			case DurationUnitMonths:
 				if val > 24 {
 					return core_tg_dialog.Result{
 						Kind:    core_tg_dialog.Retry,

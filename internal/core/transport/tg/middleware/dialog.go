@@ -62,13 +62,18 @@ func Dialog(
 			case core_tg_dialog.Advance:
 				nextStep, ok := flow.Steps[result.Next]
 				if !ok {
-					log.Error("dialog: advance to unknown step", zap.String("step_id", string(session.Step)))
+					log.Error("dialog: advance to unknown step", zap.String("step_id", string(result.Next)))
 					store.Delete(chatID)
 					return
 				}
 				session.Step = result.Next
 				store.Set(chatID, session)
-				responseHandler.TextResponse(nextStep.Enter)
+
+				enterText := nextStep.Enter
+				if result.Message != "" {
+					enterText = result.Message
+				}
+				responseHandler.TextResponse(enterText)
 
 			case core_tg_dialog.Complete:
 				store.Delete(chatID)
