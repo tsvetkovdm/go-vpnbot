@@ -10,6 +10,6 @@ const (
 
 type Result struct {
 	Kind    ResultKind
-	Next    StepID // валиден только при Advance
-	Message string // валиден при Retry (текст ошибки) и Complete (что ответить)
+	Next    StepID
+	Message string
 }
