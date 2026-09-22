@@ -56,6 +56,10 @@ func Dialog(
 
 			switch result.Kind {
 			case core_tg_dialog.Retry:
+				log.Debug("dialog: retry",
+					zap.String("step_id", string(session.Step)),
+					zap.String("reason", result.Message),
+				)
 				store.Set(chatID, session)
 				responseHandler.TextResponse(result.Message)
 
@@ -78,6 +82,9 @@ func Dialog(
 			case core_tg_dialog.Complete:
 				store.Delete(chatID)
 				responseHandler.TextResponse(result.Message)
+			case core_tg_dialog.Abort:
+				store.Delete(chatID)
+				responseHandler.ErrorResponse(result.Err, result.LogMsg)
 			}
 		}
 	}

@@ -14,8 +14,10 @@ import (
 )
 
 const (
-	DurationUnitMonths string = "months"
-	DurationUnitDays   string = "days"
+	durationUnitMonths string = "months"
+	durationUnitDays   string = "days"
+
+	maxPriceRubles = 1_000_000
 )
 
 func stepAwaitTitle() core_tg_dialog.Step {
@@ -49,7 +51,7 @@ func stepAwaitTitle() core_tg_dialog.Step {
 func stepAwaitDurationUnit() core_tg_dialog.Step {
 	return core_tg_dialog.Step{
 		ID:    StepAwaitDurationUnit,
-		Enter: "Выберите `месяцы` или `дни` (доступен текстовый ввод)",
+		Enter: "Выберите 'месяцы' или 'дни' (доступен текстовый ввод)",
 		OnInput: func(
 			ctx context.Context,
 			session *core_tg_dialog.Session,
@@ -67,10 +69,10 @@ func stepAwaitDurationUnit() core_tg_dialog.Step {
 			var message string
 			switch strings.ToLower(text[0]) {
 			case "месяцы", "м":
-				session.Data[dataKeyDurationUnit] = DurationUnitMonths
+				session.Data[dataKeyDurationUnit] = durationUnitMonths
 				message = "Введите длительность тарифа в месяцах"
 			case "дни", "д":
-				session.Data[dataKeyDurationUnit] = DurationUnitDays
+				session.Data[dataKeyDurationUnit] = durationUnitDays
 				message = "Введите длительность тарифа в днях"
 			default:
 				return core_tg_dialog.Result{
@@ -115,7 +117,7 @@ func stepAwaitDurationValue() core_tg_dialog.Step {
 			}
 
 			switch session.Data[dataKeyDurationUnit] {
-			case DurationUnitMonths:
+			case durationUnitMonths:
 				if val > 24 {
 					return core_tg_dialog.Result{
 						Kind:    core_tg_dialog.Retry,
@@ -124,7 +126,7 @@ func stepAwaitDurationValue() core_tg_dialog.Step {
 				}
 				session.Data[dataKeyDurationMonths] = text
 				session.Data[dataKeyDurationDays] = "0"
-			case DurationUnitDays:
+			case durationUnitDays:
 				if val > 366 {
 					return core_tg_dialog.Result{
 						Kind:    core_tg_dialog.Retry,
@@ -170,17 +172,49 @@ func stepAwaitPrice(plansService PlansService) core_tg_dialog.Step {
 				}
 			}
 
-			title := session.Data[dataKeyTitle]
-			month, _ := strconv.Atoi(session.Data[dataKeyDurationMonths])
-			days, _ := strconv.Atoi(session.Data[dataKeyDurationDays])
+			if price.GreaterThan(decimal.NewFromInt(maxPriceRubles)) {
+				return core_tg_dialog.Result{
+					Kind:    core_tg_dialog.Retry,
+					Message: fmt.Sprintf("Стоимость не должна превышать %d р.", maxPriceRubles),
+				}
+			}
 
-			duration := domain.NewDuration(int32(month), int32(days), 0)
+			if price.Exponent() < -2 {
+				return core_tg_dialog.Result{
+					Kind:    core_tg_dialog.Retry,
+					Message: "Не более двух знаков после запятой.",
+				}
+			}
+
+			title := session.Data[dataKeyTitle]
+			months, err := strconv.Atoi(session.Data[dataKeyDurationMonths])
+			if err != nil {
+				return core_tg_dialog.Result{
+					Kind:   core_tg_dialog.Abort,
+					Err:    fmt.Errorf("atoi months: %w", err),
+					LogMsg: "failed to create plan",
+				}
+			}
+			days, err := strconv.Atoi(session.Data[dataKeyDurationDays])
+			if err != nil {
+				return core_tg_dialog.Result{
+					Kind:   core_tg_dialog.Abort,
+					Err:    fmt.Errorf("atoi days: %w", err),
+					LogMsg: "failed to create plan",
+				}
+			}
+
+			duration := domain.NewDuration(int32(months), int32(days), 0)
 
 			planDomain := domain.NewPlan(title, price, duration)
 
 			plan, err := plansService.CreatePlan(ctx, planDomain)
 			if err != nil {
-
+				return core_tg_dialog.Result{
+					Kind:   core_tg_dialog.Abort,
+					Err:    fmt.Errorf("create plan: %w", err),
+					LogMsg: "failed to create plan",
+				}
 			}
 
 			var durationStr string
