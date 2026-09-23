@@ -56,10 +56,14 @@ func Trace() Middleware {
 			before := time.Now()
 
 			var command, args string
-			if update.Message != nil {
+			switch {
+			case update.Message != nil && update.Message.IsCommand():
 				command = update.Message.Command()
 				args = update.Message.CommandArguments()
-			} else if update.CallbackQuery != nil {
+			case update.Message != nil:
+				command = "text"
+				args = update.Message.Text
+			case update.CallbackQuery != nil:
 				command = "callback"
 				args = update.CallbackQuery.Data
 			}
