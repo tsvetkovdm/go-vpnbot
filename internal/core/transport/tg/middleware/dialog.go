@@ -23,8 +23,13 @@ func Dialog(
 			chatID := core_tg_request.ChatID(update)
 			responseHandler := core_tg_response.NewTGResponseHandler(log, update, bot)
 
-			session, ok := store.Get(chatID)
-			if !ok {
+			session, status := store.Get(chatID)
+			switch status {
+			case core_tg_dialog.NotFound:
+				next(ctx, update)
+				return
+			case core_tg_dialog.Expired:
+				responseHandler.TextResponse("Сессия истекла, начните заново")
 				next(ctx, update)
 				return
 			}

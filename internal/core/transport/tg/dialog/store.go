@@ -5,6 +5,14 @@ import (
 	"time"
 )
 
+type GetStatus int
+
+const (
+	NotFound GetStatus = iota
+	Expired
+	Found
+)
+
 type Store struct {
 	mu   sync.Mutex
 	ttl  time.Duration
@@ -18,20 +26,21 @@ func NewStore(ttl time.Duration) *Store {
 	}
 }
 
-func (s *Store) Get(chatID int64) (Session, bool) {
+func (s *Store) Get(chatID int64) (Session, GetStatus) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
 	session, ok := s.data[chatID]
 	if !ok {
-		return Session{}, false
+		return Session{}, NotFound
 	}
 
 	if time.Since(session.UpdatedAt) > s.ttl {
 		delete(s.data, chatID)
+		return Session{}, Expired
 	}
 
-	return session, true
+	return session, Found
 }
 
 func (s *Store) Set(chatID int64, session Session) {
