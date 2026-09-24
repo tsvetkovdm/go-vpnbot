@@ -33,6 +33,16 @@ type PlansService interface {
 		ctx context.Context,
 		includeInactive bool,
 	) ([]domain.Plan, error)
+
+	ActivatePlan(
+		ctx context.Context,
+		planID int64,
+	) (domain.Plan, error)
+
+	DeactivatePlan(
+		ctx context.Context,
+		planID int64,
+	) (domain.Plan, error)
 }
 
 func NewPlansTGHandler(
@@ -68,6 +78,18 @@ func (h *PlansTGHandler) Routes() []core_tg_poller.Route {
 			"list_plans",
 			core_tg_poller.TriggerCommand,
 			h.ListPlans,
+			h.adminOnly,
+		),
+		core_tg_poller.NewRoute(
+			"deactivate_plan",
+			core_tg_poller.TriggerCommand,
+			h.DeactivatePlan,
+			h.adminOnly,
+		),
+		core_tg_poller.NewRoute(
+			"activate_plan",
+			core_tg_poller.TriggerCommand,
+			h.ActivatePlan,
 			h.adminOnly,
 		),
 	}

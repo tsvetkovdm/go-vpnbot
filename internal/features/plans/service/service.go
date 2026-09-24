@@ -25,6 +25,16 @@ type PlansRepository interface {
 		ctx context.Context,
 		includeInactive bool,
 	) ([]domain.Plan, error)
+
+	ActivatePlan(
+		ctx context.Context,
+		plan domain.Plan,
+	) (domain.Plan, error)
+
+	DeactivatePlan(
+		ctx context.Context,
+		plan domain.Plan,
+	) (domain.Plan, error)
 }
 
 func NewPlansService(
