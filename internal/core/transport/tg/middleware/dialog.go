@@ -75,6 +75,12 @@ func Dialog(
 					store.Delete(chatID)
 					return
 				}
+
+				log.Debug("dialog: advance",
+					zap.String("from_step", string(session.Step)),
+					zap.String("to_step", string(result.Next)),
+				)
+
 				session.Step = result.Next
 				store.Set(chatID, session)
 
@@ -85,6 +91,10 @@ func Dialog(
 				responseHandler.TextResponse(enterText)
 
 			case core_tg_dialog.Complete:
+				log.Debug("dialog: complete",
+					zap.String("flow_id", session.FlowID),
+					zap.String("step_id", string(session.Step)),
+				)
 				store.Delete(chatID)
 				responseHandler.TextResponse(result.Message)
 			case core_tg_dialog.Abort:
