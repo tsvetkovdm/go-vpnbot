@@ -50,7 +50,7 @@ func (h *TGResponseHandler) ErrorResponse(err error, msg string) {
 		userText = "Некорректные данные, попробуйте ещё раз."
 		logFunc = h.log.Warn
 	case errors.Is(err, core_errors.ErrNotFound):
-		userText = "Пользователь с таким telegram_id не найден."
+		userText = "Запись не найдена."
 		logFunc = h.log.Debug
 	default:
 		userText = "Что-то пошло не так, попробуйте позже."

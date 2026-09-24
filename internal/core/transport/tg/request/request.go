@@ -37,17 +37,20 @@ func FromUser(update tgbotapi.Update) *tgbotapi.User {
 			"core_tg_request: FromUser: update has neither Message nor CallbackQuery, update_id=%d",
 			update.UpdateID,
 		))
-
 	}
 }
 
-func TelegramIDArg(update tgbotapi.Update) (int64, error) {
+func Int64Arg(update tgbotapi.Update) (int64, error) {
 	arg := update.Message.CommandArguments()
 
-	telegramID, err := strconv.ParseInt(arg, 10, 64)
+	int64Arg, err := strconv.ParseInt(arg, 10, 64)
 	if err != nil {
-		return 0, fmt.Errorf("parse telegram_id %q: %w", arg, core_errors.ErrInvalidArgument)
+		return 0, fmt.Errorf("parse argument %q: %w", arg, core_errors.ErrInvalidArgument)
 	}
 
-	return telegramID, nil
+	return int64Arg, nil
+}
+
+func TelegramIDArg(update tgbotapi.Update) (int64, error) {
+	return Int64Arg(update)
 }
