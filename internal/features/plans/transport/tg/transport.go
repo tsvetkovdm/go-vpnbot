@@ -23,6 +23,16 @@ type PlansService interface {
 		ctx context.Context,
 		plan domain.Plan,
 	) (domain.Plan, error)
+
+	GetPlanByID(
+		ctx context.Context,
+		planID int64,
+	) (domain.Plan, error)
+
+	ListPlans(
+		ctx context.Context,
+		includeInactive bool,
+	) ([]domain.Plan, error)
 }
 
 func NewPlansTGHandler(
@@ -46,6 +56,18 @@ func (h *PlansTGHandler) Routes() []core_tg_poller.Route {
 			"create_plan",
 			core_tg_poller.TriggerCommand,
 			h.CreatePlan,
+			h.adminOnly,
+		),
+		core_tg_poller.NewRoute(
+			"get_plan",
+			core_tg_poller.TriggerCommand,
+			h.GetPlan,
+			h.adminOnly,
+		),
+		core_tg_poller.NewRoute(
+			"list_plans",
+			core_tg_poller.TriggerCommand,
+			h.ListPlans,
 			h.adminOnly,
 		),
 	}

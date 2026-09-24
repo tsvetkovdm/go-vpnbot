@@ -15,6 +15,16 @@ type PlansRepository interface {
 		ctx context.Context,
 		plan domain.Plan,
 	) (domain.Plan, error)
+
+	GetPlanByID(
+		ctx context.Context,
+		planID int64,
+	) (domain.Plan, error)
+
+	ListPlans(
+		ctx context.Context,
+		includeInactive bool,
+	) ([]domain.Plan, error)
 }
 
 func NewPlansService(
