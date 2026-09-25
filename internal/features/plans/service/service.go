@@ -28,12 +28,12 @@ type PlansRepository interface {
 
 	ActivatePlan(
 		ctx context.Context,
-		plan domain.Plan,
+		planID int64,
 	) (domain.Plan, error)
 
 	DeactivatePlan(
 		ctx context.Context,
-		plan domain.Plan,
+		planID int64,
 	) (domain.Plan, error)
 }
 

@@ -11,18 +11,9 @@ func (s *PlansService) DeactivatePlan(
 	ctx context.Context,
 	planID int64,
 ) (domain.Plan, error) {
-	plan, err := s.plansRepository.GetPlanByID(ctx, planID)
+	plan, err := s.plansRepository.DeactivatePlan(ctx, planID)
 	if err != nil {
-		return domain.Plan{}, fmt.Errorf("get plan from repository: %w", err)
-	}
-
-	if plan.IsActive {
-		plan, err = s.plansRepository.DeactivatePlan(ctx, plan)
-		if err != nil {
-			return domain.Plan{}, fmt.Errorf("deactivate plan: %w", err)
-		}
-	} else {
-		return plan, fmt.Errorf("plan is already deactivated")
+		return domain.Plan{}, fmt.Errorf("deactivate plan: %w", err)
 	}
 
 	return plan, nil
