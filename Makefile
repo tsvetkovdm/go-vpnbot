@@ -71,7 +71,8 @@ vpnbot-run:
 	go run ${PROJECT_ROOT}/cmd/vpnbot/main.go
 
 vpnbot-deploy:
-	@docker compose up -d --build vpnbot
+	@mkdir -p ${PROJECT_ROOT}/out/logs
+	docker compose up -d --build vpnbot
 
 vpnbot-undeploy:
 	@docker compose down vpnbot

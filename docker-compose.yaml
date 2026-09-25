@@ -4,6 +4,7 @@ services:
       context: ${PROJECT_ROOT}
       dockerfile: ${PROJECT_ROOT}/cmd/vpnbot/Dockerfile
     container_name: vpnbot
+    user: ${DOCKER_USER}
     depends_on:
       vpnbot-postgres:
         condition: service_healthy
