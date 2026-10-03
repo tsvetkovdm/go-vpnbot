@@ -21,15 +21,16 @@ func Dialog(
 		return func(ctx context.Context, update tgbotapi.Update) {
 			log := core_logger.FromContext(ctx)
 			chatID := core_tg_request.ChatID(update)
-			responseHandler := core_tg_response.NewTGResponseHandler(log, update, bot)
 
 			session, status := store.Get(chatID)
+
 			switch status {
 			case core_tg_dialog.NotFound:
 				next(ctx, update)
 				return
 			case core_tg_dialog.Expired:
-				responseHandler.TextResponse("Сессия истекла, начните заново")
+				core_tg_response.NewTGResponseHandler(log, update, bot).
+					TextResponse("Сессия истекла, начните заново")
 				next(ctx, update)
 				return
 			}
@@ -37,10 +38,17 @@ func Dialog(
 			if update.Message == nil || update.Message.IsCommand() {
 				store.Delete(chatID)
 				if update.Message != nil && update.Message.IsCommand() {
-					responseHandler.TextResponse("Создание тарифа отменено")
+					core_tg_response.NewTGResponseHandler(log, update, bot).
+						EditMessage(chatID, session.MessageID, "Создание тарифа отменено", nil)
 				}
 				next(ctx, update)
 				return
+			}
+
+			delMsg := tgbotapi.NewDeleteMessage(chatID, update.Message.MessageID)
+			_, err := bot.Send(delMsg)
+			if err != nil {
+				log.Debug("dialog: failed to delete user message", zap.Error(err))
 			}
 
 			flow, ok := flows[session.FlowID]
@@ -58,6 +66,7 @@ func Dialog(
 			}
 
 			result := step.OnInput(ctx, &session, update)
+			responseHandler := core_tg_response.NewTGResponseHandler(log, update, bot)
 
 			switch result.Kind {
 			case core_tg_dialog.Retry:
@@ -66,7 +75,7 @@ func Dialog(
 					zap.String("reason", result.Message),
 				)
 				store.Set(chatID, session)
-				responseHandler.TextResponse(result.Message)
+				responseHandler.EditMessage(chatID, session.MessageID, result.Message, nil)
 
 			case core_tg_dialog.Advance:
 				nextStep, ok := flow.Steps[result.Next]
@@ -88,7 +97,7 @@ func Dialog(
 				if result.Message != "" {
 					enterText = result.Message
 				}
-				responseHandler.TextResponse(enterText)
+				responseHandler.EditMessage(chatID, session.MessageID, enterText, nil)
 
 			case core_tg_dialog.Complete:
 				log.Debug("dialog: complete",
@@ -96,10 +105,11 @@ func Dialog(
 					zap.String("step_id", string(session.Step)),
 				)
 				store.Delete(chatID)
-				responseHandler.TextResponse(result.Message)
+				responseHandler.EditMessage(chatID, session.MessageID, result.Message, nil)
+
 			case core_tg_dialog.Abort:
 				store.Delete(chatID)
-				responseHandler.ErrorResponse(result.Err, result.LogMsg)
+				responseHandler.EditErrorResponse(chatID, session.MessageID, result.Err, result.LogMsg)
 			}
 		}
 	}
