@@ -2,10 +2,12 @@ package admins_transport_tg
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	domain "github.com/tsvetkovdm/go-vpnbot/internal/core/domains"
+	core_errors "github.com/tsvetkovdm/go-vpnbot/internal/core/errors"
 	core_logger "github.com/tsvetkovdm/go-vpnbot/internal/core/logger"
 	core_tg_request "github.com/tsvetkovdm/go-vpnbot/internal/core/transport/tg/request"
 	core_tg_response "github.com/tsvetkovdm/go-vpnbot/internal/core/transport/tg/response"
@@ -41,6 +43,10 @@ func (h *AdminsTGHandler) AddAdmin(
 
 	adminDomain, err = h.adminsService.AddAdmin(ctx, adminDomain)
 	if err != nil {
+		if errors.Is(err, core_errors.ErrConflict) {
+			responseHandler.TextResponse(fmt.Sprintf("Пользователь %d уже администратор", telegramID))
+			return
+		}
 		responseHandler.ErrorResponse(err, "failed to add admin")
 		return
 	}

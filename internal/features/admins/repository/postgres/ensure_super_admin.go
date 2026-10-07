@@ -17,7 +17,9 @@ func (r *AdminsRepository) EnsureSuperAdmin(
 	query := `
 	INSERT INTO vpnbot.admins (telegram_id, role, added_by, created_at)
 	VALUES ($1, $2, $3, $4)
-	ON CONFLICT (telegram_id) DO UPDATE SET role = EXCLUDED.role;
+	ON CONFLICT (telegram_id) 
+	DO UPDATE 
+	SET role = EXCLUDED.role, removed_at = NULL;
 	`
 
 	if _, err := r.pool.Exec(

@@ -114,6 +114,8 @@ func (h *TGResponseHandler) resolveError(err error) (string, func(string, ...zap
 		return "Некорректные данные, попробуйте ещё раз.", h.log.Warn
 	case errors.Is(err, core_errors.ErrNotFound):
 		return "Запись не найдена.", h.log.Debug
+	case errors.Is(err, core_errors.ErrConflict):
+		return "Операция невозможна при текущем состоянии данных.", h.log.Info
 	default:
 		return "Что-то пошло не так, попробуйте позже.", h.log.Error
 	}

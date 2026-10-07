@@ -18,7 +18,8 @@ CREATE TABLE admins (
     telegram_id BIGINT      NOT NULL UNIQUE,
     role        VARCHAR(20) NOT NULL DEFAULT 'admin' CHECK (role IN ('super', 'admin', 'support')),
     added_by    BIGINT      REFERENCES admins(id),
-    created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+    created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
+    removed_at  TIMESTAMPTZ 
 );
 
 CREATE TABLE plans (
@@ -49,7 +50,7 @@ CREATE TABLE subscriptions(
 CREATE TABLE payments(
     id                   BIGSERIAL      PRIMARY KEY,
     user_id              BIGINT         NOT NULL REFERENCES users(id),
-    plan_id              BIGINT                  REFERENCES plans(id) ON DELETE SET NULL,
+    plan_id              BIGINT         NOT NULL REFERENCES plans(id),
     plan_title_snapshot  VARCHAR(100)   NOT NULL,
     price_snapshot       NUMERIC(10, 2) NOT NULL CHECK (price_snapshot > 0),
     duration_snapshot    INTERVAL       NOT NULL CHECK (duration_snapshot > interval '0'),
@@ -68,7 +69,7 @@ CREATE TABLE admin_audit_log (
     id          BIGSERIAL   PRIMARY KEY,
     admin_id    BIGINT      NOT NULL REFERENCES admins(id),
     action      VARCHAR(50) NOT NULL CHECK (action IN (
-                    'user_blocked', 'user_unblocked',
+                    'user_blocked', 'user_unblocked', 'user_deleted',
                     'payment_confirmed', 'payment_rejected',
                     'subscription_extended_manually',
                     'plan_created', 'plan_activated', 'plan_deactivated', 'plan_deleted',
