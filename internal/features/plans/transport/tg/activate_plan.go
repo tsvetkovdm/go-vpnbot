@@ -34,7 +34,7 @@ func (h *PlansTGHandler) ActivatePlan(
 			return
 		}
 
-		responseHandler.TextResponse(fmt.Sprintf("План #%d уже активен.", plan.ID))
+		responseHandler.TextResponse(fmt.Sprintf("План #%d уже активен.", planID))
 		return
 	}
 

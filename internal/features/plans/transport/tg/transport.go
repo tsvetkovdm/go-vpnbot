@@ -139,6 +139,18 @@ func (h *PlansTGHandler) Routes() []core_tg_poller.Route {
 			h.MenuViewPlan,
 			h.adminOnly,
 		),
+		core_tg_poller.NewRoute(
+			"plans:activate:",
+			core_tg_poller.TriggerCallbackPrefix,
+			h.MenuTogglePlan,
+			h.adminOnly,
+		),
+		core_tg_poller.NewRoute(
+			"plans:deactivate:",
+			core_tg_poller.TriggerCallbackPrefix,
+			h.MenuTogglePlan,
+			h.adminOnly,
+		),
 	}
 }
 

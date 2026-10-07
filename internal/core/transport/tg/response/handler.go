@@ -127,10 +127,16 @@ func (h *TGResponseHandler) ErrorResponse(err error, msg string) {
 	h.TextResponse(userText)
 }
 
-func (h *TGResponseHandler) EditErrorResponse(chatID int64, messageID int, err error, msg string) {
+func (h *TGResponseHandler) EditErrorResponse(
+	chatID int64,
+	messageID int,
+	err error,
+	msg string,
+	markup *tgbotapi.InlineKeyboardMarkup,
+) {
 	userText, logFunc := h.resolveError(err)
 	logFunc(msg, zap.Error(err))
-	h.EditMessage(chatID, messageID, userText, nil)
+	h.EditMessage(chatID, messageID, userText, markup)
 }
 
 func (h *TGResponseHandler) PanicResponse(p any, msg string) {

@@ -27,6 +27,13 @@ func parseCallbackData(data string) (int64, string, string, error) {
 	return planID, segments[3], segments[4], nil
 }
 
+func backToListMarkup(filter, page string) tgbotapi.InlineKeyboardButton {
+	return tgbotapi.NewInlineKeyboardButtonData(
+		"Назад",
+		core_tg_callback.Build("plans", "list", filter, page),
+	)
+}
+
 func assemblePlanCard(
 	plan domain.Plan,
 	filter string,
@@ -46,12 +53,7 @@ func assemblePlanCard(
 				core_tg_callback.Build("plans", action, strconv.FormatInt(plan.ID, 10), filter, page),
 			),
 		),
-		tgbotapi.NewInlineKeyboardRow(
-			tgbotapi.NewInlineKeyboardButtonData(
-				"Назад",
-				core_tg_callback.Build("plans", "list", filter, page),
-			),
-		),
+		tgbotapi.NewInlineKeyboardRow(backToListMarkup(filter, page)),
 	)
 
 	return text, markup

@@ -109,7 +109,7 @@ func Dialog(
 
 			case core_tg_dialog.Abort:
 				store.Delete(chatID)
-				responseHandler.EditErrorResponse(chatID, session.MessageID, result.Err, result.LogMsg)
+				responseHandler.EditErrorResponse(chatID, session.MessageID, result.Err, result.LogMsg, nil)
 			}
 		}
 	}
