@@ -23,7 +23,7 @@ const (
 func stepAwaitTitle() core_tg_dialog.Step {
 	return core_tg_dialog.Step{
 		ID:    StepAwaitTitle,
-		Enter: "Введите название тарифа (до 30 символов)",
+		Enter: "Введите название тарифа (до 30 символов):",
 		OnInput: func(
 			ctx context.Context,
 			session *core_tg_dialog.Session,
@@ -51,7 +51,7 @@ func stepAwaitTitle() core_tg_dialog.Step {
 func stepAwaitDurationUnit() core_tg_dialog.Step {
 	return core_tg_dialog.Step{
 		ID:    StepAwaitDurationUnit,
-		Enter: "Выберите 'месяцы' или 'дни' (доступен текстовый ввод)",
+		Enter: "Выберите 'месяцы' или 'дни' (доступен текстовый ввод):",
 		OnInput: func(
 			ctx context.Context,
 			session *core_tg_dialog.Session,
@@ -70,14 +70,14 @@ func stepAwaitDurationUnit() core_tg_dialog.Step {
 			switch strings.ToLower(text[0]) {
 			case "месяцы", "м":
 				session.Data[dataKeyDurationUnit] = durationUnitMonths
-				message = "Введите длительность тарифа в месяцах"
+				message = "Введите длительность тарифа в месяцах:"
 			case "дни", "д":
 				session.Data[dataKeyDurationUnit] = durationUnitDays
-				message = "Введите длительность тарифа в днях"
+				message = "Введите длительность тарифа в днях:"
 			default:
 				return core_tg_dialog.Result{
 					Kind:    core_tg_dialog.Retry,
-					Message: "Некорректный ввод. Введите первую букву или слово целиком (Пример: месяцы).",
+					Message: "Некорректный ввод. Введите первую букву или слово целиком (Пример: месяцы):",
 				}
 			}
 
@@ -93,7 +93,7 @@ func stepAwaitDurationUnit() core_tg_dialog.Step {
 func stepAwaitDurationValue() core_tg_dialog.Step {
 	return core_tg_dialog.Step{
 		ID:    StepAwaitDurationValue,
-		Enter: "Введите длительность тарифа в месяцах/днях",
+		Enter: "Введите длительность тарифа в месяцах/днях:",
 		OnInput: func(
 			ctx context.Context,
 			session *core_tg_dialog.Session,
@@ -148,7 +148,7 @@ func stepAwaitDurationValue() core_tg_dialog.Step {
 func stepAwaitPrice(plansService PlansService) core_tg_dialog.Step {
 	return core_tg_dialog.Step{
 		ID:    StepAwaitPrice,
-		Enter: "Введите стоимость тарифа в рублях",
+		Enter: "Введите стоимость тарифа в рублях:",
 		OnInput: func(
 			ctx context.Context,
 			session *core_tg_dialog.Session,
