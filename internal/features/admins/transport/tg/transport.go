@@ -12,6 +12,7 @@ import (
 type AdminsTGHandler struct {
 	bot            *tgbotapi.BotAPI
 	adminsService  AdminsService
+	adminOnly      core_tg_middleware.Middleware
 	superAdminOnly core_tg_middleware.Middleware
 }
 
@@ -35,11 +36,13 @@ type AdminsService interface {
 func NewAdminsTGHandler(
 	bot *tgbotapi.BotAPI,
 	adminsService AdminsService,
+	adminOnly core_tg_middleware.Middleware,
 	superAdminOnly core_tg_middleware.Middleware,
 ) *AdminsTGHandler {
 	return &AdminsTGHandler{
 		bot:            bot,
 		adminsService:  adminsService,
+		adminOnly:      adminOnly,
 		superAdminOnly: superAdminOnly,
 	}
 }
@@ -57,6 +60,18 @@ func (h *AdminsTGHandler) Routes() []core_tg_poller.Route {
 			core_tg_poller.TriggerCommand,
 			h.RemoveAdmin,
 			h.superAdminOnly,
+		),
+		core_tg_poller.NewRoute(
+			"admin",
+			core_tg_poller.TriggerCommand,
+			h.MenuRoot,
+			h.adminOnly,
+		),
+		core_tg_poller.NewRoute(
+			"admins:menu",
+			core_tg_poller.TriggerCallbackPrefix,
+			h.MenuRoot,
+			h.adminOnly,
 		),
 	}
 }

@@ -66,7 +66,7 @@ func main() {
 	adminsService := admins_service.NewAdminsService(adminsRepository)
 	adminOnly := core_tg_middleware.AdminOnly(bot, adminsService)
 	superAdminOnly := core_tg_middleware.SuperAdminOnly(bot, adminsService)
-	adminsTransportTG := admins_transport_tg.NewAdminsTGHandler(bot, adminsService, superAdminOnly)
+	adminsTransportTG := admins_transport_tg.NewAdminsTGHandler(bot, adminsService, adminOnly, superAdminOnly)
 	if err := adminsService.EnsureSuperAdmin(ctx, cfg.SuperAdminTelegramID); err != nil {
 		logger.Fatal("failed to ensure super admin", zap.Error(err))
 	}

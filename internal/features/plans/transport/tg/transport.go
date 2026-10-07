@@ -92,6 +92,42 @@ func (h *PlansTGHandler) Routes() []core_tg_poller.Route {
 			h.ActivatePlan,
 			h.adminOnly,
 		),
+		core_tg_poller.NewRoute(
+			"plans:menu",
+			core_tg_poller.TriggerCallbackPrefix,
+			h.MenuRoot,
+			h.adminOnly,
+		),
+		core_tg_poller.NewRoute(
+			"plans:create",
+			core_tg_poller.TriggerCallbackPrefix,
+			h.MenuCreatePlan,
+			h.adminOnly,
+		),
+		core_tg_poller.NewRoute(
+			"plans:list:menu",
+			core_tg_poller.TriggerCallbackPrefix,
+			h.MenuListChoice,
+			h.adminOnly,
+		),
+		core_tg_poller.NewRoute(
+			"plans:list:active:",
+			core_tg_poller.TriggerCallbackPrefix,
+			h.MenuListPlans,
+			h.adminOnly,
+		),
+		core_tg_poller.NewRoute(
+			"plans:list:all:",
+			core_tg_poller.TriggerCallbackPrefix,
+			h.MenuListPlans,
+			h.adminOnly,
+		),
+		core_tg_poller.NewRoute(
+			"plans:view:",
+			core_tg_poller.TriggerCallbackPrefix,
+			h.MenuViewPlan,
+			h.adminOnly,
+		),
 	}
 }
 

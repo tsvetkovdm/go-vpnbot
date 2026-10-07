@@ -18,9 +18,9 @@ func (h *PlansTGHandler) CreatePlan(
 	responseHandler := core_tg_response.NewTGResponseHandler(log, update, h.bot)
 	chatID := core_tg_request.ChatID(update)
 
-	session := core_tg_dialog.NewSession(h.createPlanFlow.ID, h.createPlanFlow.Start)
-	h.dialogStore.Set(chatID, session)
-
 	startStep := h.createPlanFlow.Steps[h.createPlanFlow.Start]
-	responseHandler.TextResponse(startStep.Enter)
+	messageID := responseHandler.TextResponse(startStep.Enter)
+
+	session := core_tg_dialog.NewSession(h.createPlanFlow.ID, messageID, h.createPlanFlow.Start)
+	h.dialogStore.Set(chatID, session)
 }
