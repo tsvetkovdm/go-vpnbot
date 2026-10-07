@@ -2,10 +2,10 @@ package plans_transport_tg
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
-	"unicode/utf8"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/shopspring/decimal"
@@ -16,14 +16,12 @@ import (
 const (
 	durationUnitMonths string = "months"
 	durationUnitDays   string = "days"
-
-	maxPriceRubles = 1_000_000
 )
 
 func stepAwaitTitle() core_tg_dialog.Step {
 	return core_tg_dialog.Step{
 		ID:    StepAwaitTitle,
-		Enter: "Введите название тарифа (до 30 символов):",
+		Enter: fmt.Sprintf("Введите название тарифа (до %d символов):", domain.PlanTitleMaxLen),
 		OnInput: func(
 			ctx context.Context,
 			session *core_tg_dialog.Session,
@@ -31,11 +29,8 @@ func stepAwaitTitle() core_tg_dialog.Step {
 		) core_tg_dialog.Result {
 			text := strings.TrimSpace(update.Message.Text)
 
-			if utf8.RuneCountInString(text) > 30 {
-				return core_tg_dialog.Result{
-					Kind:    core_tg_dialog.Retry,
-					Message: "Превышен лимит символов. Максимальная длина: 30 символов",
-				}
+			if err := domain.ValidatePlanTitle(text); err != nil {
+				return planValidationResult(err, "invalid plan title")
 			}
 
 			session.Data[dataKeyTitle] = text
@@ -101,41 +96,37 @@ func stepAwaitDurationValue() core_tg_dialog.Step {
 		) core_tg_dialog.Result {
 			text := strings.TrimSpace(update.Message.Text)
 
-			val, err := strconv.Atoi(text)
+			val, err := strconv.ParseInt(text, 10, 32)
 			if err != nil {
+				if errors.Is(err, strconv.ErrRange) {
+					return planValidationResult(domain.ErrPlanDurationTooLong, "duration out of range")
+				}
 				return core_tg_dialog.Result{
 					Kind:    core_tg_dialog.Retry,
-					Message: "Введенное значение не является целым числом.",
+					Message: "Введите целое число.",
 				}
 			}
 
-			if val <= 0 {
-				return core_tg_dialog.Result{
-					Kind:    core_tg_dialog.Retry,
-					Message: "Количество должно быть больше нуля.",
-				}
-			}
-
+			var duration domain.Duration
 			switch session.Data[dataKeyDurationUnit] {
 			case durationUnitMonths:
-				if val > 24 {
-					return core_tg_dialog.Result{
-						Kind:    core_tg_dialog.Retry,
-						Message: "Количество месяцев не должно превышать 24.",
-					}
-				}
-				session.Data[dataKeyDurationMonths] = text
-				session.Data[dataKeyDurationDays] = "0"
+				duration = domain.NewDuration(int32(val), 0, 0)
 			case durationUnitDays:
-				if val > 366 {
-					return core_tg_dialog.Result{
-						Kind:    core_tg_dialog.Retry,
-						Message: "Количество дней не должно превышать 366.",
-					}
+				duration = domain.NewDuration(0, int32(val), 0)
+			default:
+				return core_tg_dialog.Result{
+					Kind:   core_tg_dialog.Abort,
+					Err:    fmt.Errorf("unknown duration unit in session: %q", session.Data[dataKeyDurationUnit]),
+					LogMsg: "failed to create plan",
 				}
-				session.Data[dataKeyDurationDays] = text
-				session.Data[dataKeyDurationMonths] = "0"
 			}
+
+			if err := domain.ValidatePlanDuration(duration); err != nil {
+				return planValidationResult(err, "invalid plan duration")
+			}
+
+			session.Data[dataKeyDurationMonths] = strconv.Itoa(int(duration.Months))
+			session.Data[dataKeyDurationDays] = strconv.Itoa(int(duration.Days))
 
 			return core_tg_dialog.Result{
 				Kind: core_tg_dialog.Advance,
@@ -154,39 +145,16 @@ func stepAwaitPrice(plansService PlansService) core_tg_dialog.Step {
 			session *core_tg_dialog.Session,
 			update tgbotapi.Update,
 		) core_tg_dialog.Result {
-			text := strings.TrimSpace(update.Message.Text)
-			text = strings.ReplaceAll(text, ",", ".")
+			text := strings.ReplaceAll(strings.TrimSpace(update.Message.Text), ",", ".")
 
 			price, err := decimal.NewFromString(text)
 			if err != nil {
 				return core_tg_dialog.Result{
 					Kind:    core_tg_dialog.Retry,
-					Message: "Введенное значение не является целым/дробным числом.",
+					Message: "Введите число, например 150 или 99.90.",
 				}
 			}
 
-			if price.LessThan(decimal.NewFromInt(0)) {
-				return core_tg_dialog.Result{
-					Kind:    core_tg_dialog.Retry,
-					Message: "Стоимость не может быть отрицательной.",
-				}
-			}
-
-			if price.GreaterThan(decimal.NewFromInt(maxPriceRubles)) {
-				return core_tg_dialog.Result{
-					Kind:    core_tg_dialog.Retry,
-					Message: fmt.Sprintf("Стоимость не должна превышать %d р.", maxPriceRubles),
-				}
-			}
-
-			if price.Exponent() < -2 {
-				return core_tg_dialog.Result{
-					Kind:    core_tg_dialog.Retry,
-					Message: "Не более двух знаков после запятой.",
-				}
-			}
-
-			title := session.Data[dataKeyTitle]
 			months, err := strconv.Atoi(session.Data[dataKeyDurationMonths])
 			if err != nil {
 				return core_tg_dialog.Result{
@@ -204,9 +172,14 @@ func stepAwaitPrice(plansService PlansService) core_tg_dialog.Step {
 				}
 			}
 
-			duration := domain.NewDuration(int32(months), int32(days), 0)
-
-			planDomain := domain.NewPlan(title, price, duration)
+			planDomain, err := domain.NewPlan(
+				session.Data[dataKeyTitle],
+				domain.NewDuration(int32(months), int32(days), 0),
+				price,
+			)
+			if err != nil {
+				return planValidationResult(err, "failed to build plan")
+			}
 
 			plan, err := plansService.CreatePlan(ctx, planDomain)
 			if err != nil {
@@ -217,17 +190,12 @@ func stepAwaitPrice(plansService PlansService) core_tg_dialog.Step {
 				}
 			}
 
-			var durationStr string
-			if plan.Duration.Months > 0 {
-				durationStr = fmt.Sprintf("%d мес.", plan.Duration.Months)
-			} else {
-				durationStr = fmt.Sprintf("%d дн.", plan.Duration.Days)
-			}
+			duration := formatDuration(plan)
 
 			message := fmt.Sprintf(
 				"Тариф '%s' (%v) создан успешно. Цена: %v р.",
 				plan.Title,
-				durationStr,
+				duration,
 				plan.Price,
 			)
 
