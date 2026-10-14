@@ -37,7 +37,7 @@ func (s *Store) Get(chatID int64) (Session, GetStatus) {
 
 	if time.Since(session.UpdatedAt) > s.ttl {
 		delete(s.data, chatID)
-		return Session{}, Expired
+		return session, Expired
 	}
 
 	return session, Found

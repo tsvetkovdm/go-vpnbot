@@ -19,10 +19,8 @@ func (h *PlansTGHandler) MenuCreatePlan(
 	chatID := core_tg_request.ChatID(update)
 
 	startStep := h.createPlanFlow.Steps[h.createPlanFlow.Start]
-	responseHandler.EditResponse(
-		startStep.Enter,
-		nil,
-	)
+	markup := core_tg_dialog.StepMarkup(startStep)
+	responseHandler.EditResponse(startStep.Enter, &markup)
 
 	session := core_tg_dialog.NewSession(
 		h.createPlanFlow.ID,

@@ -25,9 +25,9 @@ func stepAwaitTitle() core_tg_dialog.Step {
 		OnInput: func(
 			ctx context.Context,
 			session *core_tg_dialog.Session,
-			update tgbotapi.Update,
+			input string,
 		) core_tg_dialog.Result {
-			text := strings.TrimSpace(update.Message.Text)
+			text := strings.TrimSpace(input)
 
 			if err := domain.ValidatePlanTitle(text); err != nil {
 				return planValidationResult(err, "invalid plan title")
@@ -44,15 +44,23 @@ func stepAwaitTitle() core_tg_dialog.Step {
 }
 
 func stepAwaitDurationUnit() core_tg_dialog.Step {
+	markup := tgbotapi.NewInlineKeyboardMarkup(
+		tgbotapi.NewInlineKeyboardRow(
+			tgbotapi.NewInlineKeyboardButtonData("Месяцы", core_tg_dialog.ButtonData(durationUnitMonths)),
+			tgbotapi.NewInlineKeyboardButtonData("Дни", core_tg_dialog.ButtonData(durationUnitDays)),
+		),
+	)
+
 	return core_tg_dialog.Step{
-		ID:    StepAwaitDurationUnit,
-		Enter: "Выберите 'месяцы' или 'дни' (доступен текстовый ввод):",
+		ID:     StepAwaitDurationUnit,
+		Enter:  "Выберите единицу длительности (или введите «м» / «д»):",
+		Markup: &markup,
 		OnInput: func(
 			ctx context.Context,
 			session *core_tg_dialog.Session,
-			update tgbotapi.Update,
+			input string,
 		) core_tg_dialog.Result {
-			text := strings.Fields(update.Message.Text)
+			text := strings.Fields(input)
 
 			if len(text) != 1 {
 				return core_tg_dialog.Result{
@@ -63,10 +71,10 @@ func stepAwaitDurationUnit() core_tg_dialog.Step {
 
 			var message string
 			switch strings.ToLower(text[0]) {
-			case "месяцы", "м":
+			case "месяцы", "м", durationUnitMonths:
 				session.Data[dataKeyDurationUnit] = durationUnitMonths
 				message = "Введите длительность тарифа в месяцах:"
-			case "дни", "д":
+			case "дни", "д", durationUnitDays:
 				session.Data[dataKeyDurationUnit] = durationUnitDays
 				message = "Введите длительность тарифа в днях:"
 			default:
@@ -92,9 +100,9 @@ func stepAwaitDurationValue() core_tg_dialog.Step {
 		OnInput: func(
 			ctx context.Context,
 			session *core_tg_dialog.Session,
-			update tgbotapi.Update,
+			input string,
 		) core_tg_dialog.Result {
-			text := strings.TrimSpace(update.Message.Text)
+			text := strings.TrimSpace(input)
 
 			val, err := strconv.ParseInt(text, 10, 32)
 			if err != nil {
@@ -143,9 +151,9 @@ func stepAwaitPrice(plansService PlansService) core_tg_dialog.Step {
 		OnInput: func(
 			ctx context.Context,
 			session *core_tg_dialog.Session,
-			update tgbotapi.Update,
+			input string,
 		) core_tg_dialog.Result {
-			text := strings.ReplaceAll(strings.TrimSpace(update.Message.Text), ",", ".")
+			text := strings.ReplaceAll(strings.TrimSpace(input), ",", ".")
 
 			price, err := decimal.NewFromString(text)
 			if err != nil {

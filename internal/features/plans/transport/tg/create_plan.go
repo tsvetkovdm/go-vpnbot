@@ -19,7 +19,7 @@ func (h *PlansTGHandler) CreatePlan(
 	chatID := core_tg_request.ChatID(update)
 
 	startStep := h.createPlanFlow.Steps[h.createPlanFlow.Start]
-	messageID := responseHandler.TextResponse(startStep.Enter)
+	messageID := responseHandler.KeyboardResponse(startStep.Enter, core_tg_dialog.StepMarkup(startStep))
 
 	session := core_tg_dialog.NewSession(h.createPlanFlow.ID, messageID, h.createPlanFlow.Start)
 	h.dialogStore.Set(chatID, session)
