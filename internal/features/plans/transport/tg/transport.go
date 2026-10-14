@@ -155,6 +155,18 @@ func (h *PlansTGHandler) Routes() []core_tg_poller.Route {
 			h.MenuTogglePlan,
 			h.adminOnly,
 		),
+		core_tg_poller.NewRoute(
+			"plans:delete:",
+			core_tg_poller.TriggerCallbackPrefix,
+			h.MenuDeletePlanAsk,
+			h.adminOnly,
+		),
+		core_tg_poller.NewRoute(
+			"plans:confirm_delete:",
+			core_tg_poller.TriggerCallbackPrefix,
+			h.MenuDeletePlanConfirm,
+			h.adminOnly,
+		),
 	}
 }
 

@@ -40,7 +40,7 @@ func (h *PlansTGHandler) MenuTogglePlan(
 	}
 
 	backMarkup := tgbotapi.NewInlineKeyboardMarkup(
-		tgbotapi.NewInlineKeyboardRow(backToListMarkup(filter, page)),
+		tgbotapi.NewInlineKeyboardRow(backToListButton(filter, page)),
 	)
 
 	var plan domain.Plan
