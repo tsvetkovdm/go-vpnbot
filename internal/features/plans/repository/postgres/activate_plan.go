@@ -21,7 +21,7 @@ func (r *PlansRepository) ActivatePlan(
 	query := `
 	UPDATE vpnbot.plans
 	SET is_active = true, updated_at = $2, version = version + 1
-	WHERE id = $1
+	WHERE id = $1 AND is_active = false
 	RETURNING id, version, title, duration, price, is_active, created_at, updated_at;
 	`
 
@@ -40,10 +40,13 @@ func (r *PlansRepository) ActivatePlan(
 	)
 	if err != nil {
 		if errors.Is(err, core_postgres_pool.ErrNoRows) {
+			if _, getErr := r.GetPlanByID(ctx, planID); getErr != nil {
+				return domain.Plan{}, getErr
+			}
 			return domain.Plan{}, fmt.Errorf(
-				"plan with id=%d: %w",
+				"plan id=%d already active: %w",
 				planID,
-				core_errors.ErrNotFound,
+				core_errors.ErrConflict,
 			)
 		}
 		return domain.Plan{}, fmt.Errorf("scan error: %w", err)

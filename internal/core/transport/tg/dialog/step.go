@@ -11,5 +11,6 @@ type StepID string
 type Step struct {
 	ID      StepID
 	Enter   string
-	OnInput func(ctx context.Context, session *Session, update tgbotapi.Update) Result
+	Markup  *tgbotapi.InlineKeyboardMarkup
+	OnInput func(ctx context.Context, session *Session, input string) Result
 }

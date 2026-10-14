@@ -13,15 +13,20 @@ func (h *AdminsTGHandler) MenuRoot(
 	update tgbotapi.Update,
 ) {
 	log := core_logger.FromContext(ctx)
-	responseHandler := core_tg_response.NewTGResponseHandler(log, update, h.bot)
 
 	log.Debug("invoke MenuRoot admins handler")
 
+	text := "Админ меню"
 	markup := tgbotapi.NewInlineKeyboardMarkup(
 		tgbotapi.NewInlineKeyboardRow(
 			tgbotapi.NewInlineKeyboardButtonData("Тарифы", "plans:menu"),
 		),
 	)
 
-	responseHandler.KeyboardResponse("Админ меню", markup)
+	if update.CallbackQuery != nil {
+		core_tg_response.NewTGResponseHandler(log, update, h.bot).EditResponse(text, &markup)
+		return
+	}
+
+	h.screens.Show(ctx, update, text, markup)
 }

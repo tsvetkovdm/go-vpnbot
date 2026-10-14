@@ -15,6 +15,7 @@ import (
 	core_tg_dialog "github.com/tsvetkovdm/go-vpnbot/internal/core/transport/tg/dialog"
 	core_tg_middleware "github.com/tsvetkovdm/go-vpnbot/internal/core/transport/tg/middleware"
 	core_tg_poller "github.com/tsvetkovdm/go-vpnbot/internal/core/transport/tg/poller"
+	core_tg_screen "github.com/tsvetkovdm/go-vpnbot/internal/core/transport/tg/screen"
 	admins_postgres_repository "github.com/tsvetkovdm/go-vpnbot/internal/features/admins/repository/postgres"
 	admins_service "github.com/tsvetkovdm/go-vpnbot/internal/features/admins/service"
 	admins_transport_tg "github.com/tsvetkovdm/go-vpnbot/internal/features/admins/transport/tg"
@@ -51,6 +52,8 @@ func main() {
 		logger.Fatal("failed to init bot API:", zap.Error(err))
 	}
 
+	screens := core_tg_screen.NewScreens(bot)
+
 	logger.Debug("initializing postgres connection pool")
 	pool, err := core_pgx_pool.NewPool(
 		ctx,
@@ -66,7 +69,13 @@ func main() {
 	adminsService := admins_service.NewAdminsService(adminsRepository)
 	adminOnly := core_tg_middleware.AdminOnly(bot, adminsService)
 	superAdminOnly := core_tg_middleware.SuperAdminOnly(bot, adminsService)
-	adminsTransportTG := admins_transport_tg.NewAdminsTGHandler(bot, adminsService, adminOnly, superAdminOnly)
+	adminsTransportTG := admins_transport_tg.NewAdminsTGHandler(
+		bot,
+		adminsService,
+		adminOnly,
+		superAdminOnly,
+		screens,
+	)
 	if err := adminsService.EnsureSuperAdmin(ctx, cfg.SuperAdminTelegramID); err != nil {
 		logger.Fatal("failed to ensure super admin", zap.Error(err))
 	}
@@ -85,6 +94,7 @@ func main() {
 		plansService,
 		adminOnly,
 		dialogStore,
+		screens,
 	)
 
 	logger.Debug("initializing TG poller")
@@ -108,6 +118,7 @@ func main() {
 		core_tg_middleware.Panic(bot),
 		core_tg_middleware.Logger(logger),
 		core_tg_middleware.Trace(),
+		core_tg_middleware.CallbackAnswer(bot),
 		core_tg_middleware.Dialog(bot, dialogStore, flows),
 	)
 

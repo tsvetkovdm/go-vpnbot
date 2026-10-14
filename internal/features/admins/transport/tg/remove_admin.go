@@ -2,9 +2,11 @@ package admins_transport_tg
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	core_errors "github.com/tsvetkovdm/go-vpnbot/internal/core/errors"
 	core_logger "github.com/tsvetkovdm/go-vpnbot/internal/core/logger"
 	core_tg_request "github.com/tsvetkovdm/go-vpnbot/internal/core/transport/tg/request"
 	core_tg_response "github.com/tsvetkovdm/go-vpnbot/internal/core/transport/tg/response"
@@ -26,9 +28,13 @@ func (h *AdminsTGHandler) RemoveAdmin(
 	}
 
 	if err := h.adminsService.RemoveAdmin(ctx, telegramID); err != nil {
+		if errors.Is(err, core_errors.ErrConflict) {
+			responseHandler.TextResponse("Супер-администратора снять нельзя")
+			return
+		}
 		responseHandler.ErrorResponse(err, "failed to remove admin")
 		return
 	}
 
-	responseHandler.TextResponse(fmt.Sprintf("Администратор %d удалён.", telegramID))
+	responseHandler.TextResponse(fmt.Sprintf("Администратор %d снят.", telegramID))
 }

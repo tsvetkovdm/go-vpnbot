@@ -3,6 +3,7 @@ package admins_postgres_repository
 import (
 	"context"
 	"fmt"
+	"time"
 
 	core_errors "github.com/tsvetkovdm/go-vpnbot/internal/core/errors"
 )
@@ -15,11 +16,12 @@ func (r *AdminsRepository) RemoveAdmin(
 	defer cancel()
 
 	query := `
-	DELETE FROM vpnbot.admins
-	WHERE telegram_id=$1;
+	UPDATE vpnbot.admins
+	SET removed_at = $2
+	WHERE telegram_id = $1 AND removed_at IS NULL;
 	`
 
-	cmdTag, err := r.pool.Exec(ctx, query, telegramID)
+	cmdTag, err := r.pool.Exec(ctx, query, telegramID, time.Now())
 	if err != nil {
 		return fmt.Errorf("exec query: %w", err)
 	}

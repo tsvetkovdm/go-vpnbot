@@ -8,6 +8,7 @@ import (
 	core_tg_dialog "github.com/tsvetkovdm/go-vpnbot/internal/core/transport/tg/dialog"
 	core_tg_middleware "github.com/tsvetkovdm/go-vpnbot/internal/core/transport/tg/middleware"
 	core_tg_poller "github.com/tsvetkovdm/go-vpnbot/internal/core/transport/tg/poller"
+	core_tg_screen "github.com/tsvetkovdm/go-vpnbot/internal/core/transport/tg/screen"
 )
 
 type PlansTGHandler struct {
@@ -16,6 +17,7 @@ type PlansTGHandler struct {
 	adminOnly      core_tg_middleware.Middleware
 	dialogStore    *core_tg_dialog.Store
 	createPlanFlow core_tg_dialog.Flow
+	screens        *core_tg_screen.Screens
 }
 
 type PlansService interface {
@@ -43,6 +45,11 @@ type PlansService interface {
 		ctx context.Context,
 		planID int64,
 	) (domain.Plan, error)
+
+	DeletePlan(
+		ctx context.Context,
+		planID int64,
+	) error
 }
 
 func NewPlansTGHandler(
@@ -50,6 +57,7 @@ func NewPlansTGHandler(
 	plansService PlansService,
 	adminOnly core_tg_middleware.Middleware,
 	dialogStore *core_tg_dialog.Store,
+	screens *core_tg_screen.Screens,
 ) *PlansTGHandler {
 	return &PlansTGHandler{
 		bot:            bot,
@@ -57,6 +65,7 @@ func NewPlansTGHandler(
 		adminOnly:      adminOnly,
 		dialogStore:    dialogStore,
 		createPlanFlow: newCreatePlanFlow(plansService),
+		screens:        screens,
 	}
 }
 
@@ -93,6 +102,12 @@ func (h *PlansTGHandler) Routes() []core_tg_poller.Route {
 			h.adminOnly,
 		),
 		core_tg_poller.NewRoute(
+			"delete_plan",
+			core_tg_poller.TriggerCommand,
+			h.DeletePlan,
+			h.adminOnly,
+		),
+		core_tg_poller.NewRoute(
 			"plans:menu",
 			core_tg_poller.TriggerCallbackPrefix,
 			h.MenuRoot,
@@ -126,6 +141,30 @@ func (h *PlansTGHandler) Routes() []core_tg_poller.Route {
 			"plans:view:",
 			core_tg_poller.TriggerCallbackPrefix,
 			h.MenuViewPlan,
+			h.adminOnly,
+		),
+		core_tg_poller.NewRoute(
+			"plans:activate:",
+			core_tg_poller.TriggerCallbackPrefix,
+			h.MenuTogglePlan,
+			h.adminOnly,
+		),
+		core_tg_poller.NewRoute(
+			"plans:deactivate:",
+			core_tg_poller.TriggerCallbackPrefix,
+			h.MenuTogglePlan,
+			h.adminOnly,
+		),
+		core_tg_poller.NewRoute(
+			"plans:delete:",
+			core_tg_poller.TriggerCallbackPrefix,
+			h.MenuDeletePlanAsk,
+			h.adminOnly,
+		),
+		core_tg_poller.NewRoute(
+			"plans:confirm_delete:",
+			core_tg_poller.TriggerCallbackPrefix,
+			h.MenuDeletePlanConfirm,
 			h.adminOnly,
 		),
 	}

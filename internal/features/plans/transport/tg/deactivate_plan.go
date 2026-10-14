@@ -34,7 +34,7 @@ func (h *PlansTGHandler) DeactivatePlan(
 			return
 		}
 
-		responseHandler.TextResponse(fmt.Sprintf("План #%d уже деактивирован.", plan.ID))
+		responseHandler.TextResponse(fmt.Sprintf("План #%d уже деактивирован.", planID))
 		return
 	}
 

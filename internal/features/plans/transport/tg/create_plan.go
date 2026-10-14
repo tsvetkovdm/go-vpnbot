@@ -7,7 +7,6 @@ import (
 	core_logger "github.com/tsvetkovdm/go-vpnbot/internal/core/logger"
 	core_tg_dialog "github.com/tsvetkovdm/go-vpnbot/internal/core/transport/tg/dialog"
 	core_tg_request "github.com/tsvetkovdm/go-vpnbot/internal/core/transport/tg/request"
-	core_tg_response "github.com/tsvetkovdm/go-vpnbot/internal/core/transport/tg/response"
 )
 
 func (h *PlansTGHandler) CreatePlan(
@@ -15,11 +14,16 @@ func (h *PlansTGHandler) CreatePlan(
 	update tgbotapi.Update,
 ) {
 	log := core_logger.FromContext(ctx)
-	responseHandler := core_tg_response.NewTGResponseHandler(log, update, h.bot)
-	chatID := core_tg_request.ChatID(update)
 
+	log.Debug("invoke CreatePlan handler")
+
+	chatID := core_tg_request.ChatID(update)
 	startStep := h.createPlanFlow.Steps[h.createPlanFlow.Start]
-	messageID := responseHandler.TextResponse(startStep.Enter)
+
+	messageID := h.screens.Show(ctx, update, startStep.Enter, core_tg_dialog.StepMarkup(startStep))
+	if messageID == 0 {
+		return
+	}
 
 	session := core_tg_dialog.NewSession(h.createPlanFlow.ID, messageID, h.createPlanFlow.Start)
 	h.dialogStore.Set(chatID, session)

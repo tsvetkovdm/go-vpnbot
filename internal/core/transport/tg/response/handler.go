@@ -23,20 +23,11 @@ func NewTGResponseHandler(
 	update tgbotapi.Update,
 	bot *tgbotapi.BotAPI,
 ) *TGResponseHandler {
-	h := &TGResponseHandler{
+	return &TGResponseHandler{
 		log:    log,
 		update: update,
 		bot:    bot,
 	}
-
-	if update.CallbackQuery != nil {
-		callback := tgbotapi.NewCallback(update.CallbackQuery.ID, "")
-		if _, err := bot.Request(callback); err != nil {
-			log.Error("answer callback query", zap.Error(err))
-		}
-	}
-
-	return h
 }
 
 func (h *TGResponseHandler) TextResponse(text string) int {
@@ -80,19 +71,17 @@ func (h *TGResponseHandler) EditResponse(
 		return
 	}
 
-	chatID := core_tg_request.ChatID(h.update)
-	messageID := h.update.CallbackQuery.Message.MessageID
-
-	h.EditMessage(chatID, messageID, text, markup)
+	h.EditMessage(h.update.CallbackQuery.Message.MessageID, text, markup)
 
 }
 
 func (h *TGResponseHandler) EditMessage(
-	chatID int64,
 	messageID int,
 	text string,
 	markup *tgbotapi.InlineKeyboardMarkup,
 ) {
+	chatID := core_tg_request.ChatID(h.update)
+
 	edit := tgbotapi.NewEditMessageText(chatID, messageID, text)
 	if markup != nil {
 		edit.ReplyMarkup = markup
@@ -114,6 +103,8 @@ func (h *TGResponseHandler) resolveError(err error) (string, func(string, ...zap
 		return "Некорректные данные, попробуйте ещё раз.", h.log.Warn
 	case errors.Is(err, core_errors.ErrNotFound):
 		return "Запись не найдена.", h.log.Debug
+	case errors.Is(err, core_errors.ErrConflict):
+		return "Операция невозможна при текущем состоянии данных.", h.log.Info
 	default:
 		return "Что-то пошло не так, попробуйте позже.", h.log.Error
 	}
@@ -125,10 +116,15 @@ func (h *TGResponseHandler) ErrorResponse(err error, msg string) {
 	h.TextResponse(userText)
 }
 
-func (h *TGResponseHandler) EditErrorResponse(chatID int64, messageID int, err error, msg string) {
+func (h *TGResponseHandler) EditErrorResponse(
+	messageID int,
+	err error,
+	msg string,
+	markup *tgbotapi.InlineKeyboardMarkup,
+) {
 	userText, logFunc := h.resolveError(err)
 	logFunc(msg, zap.Error(err))
-	h.EditMessage(chatID, messageID, userText, nil)
+	h.EditMessage(messageID, userText, markup)
 }
 
 func (h *TGResponseHandler) PanicResponse(p any, msg string) {

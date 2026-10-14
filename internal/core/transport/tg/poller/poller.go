@@ -40,6 +40,7 @@ func (p *TGPoller) Run(ctx context.Context) error {
 
 	updateConfig := tgbotapi.NewUpdate(-1)
 	updateConfig.Timeout = int(p.config.PollTimeout.Seconds())
+	updateConfig.AllowedUpdates = []string{"message", "callback_query"}
 
 	p.log.Warn("start TG poller")
 	ch := p.bot.GetUpdatesChan(updateConfig)
