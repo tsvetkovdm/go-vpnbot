@@ -8,6 +8,7 @@ import (
 	core_tg_dialog "github.com/tsvetkovdm/go-vpnbot/internal/core/transport/tg/dialog"
 	core_tg_middleware "github.com/tsvetkovdm/go-vpnbot/internal/core/transport/tg/middleware"
 	core_tg_poller "github.com/tsvetkovdm/go-vpnbot/internal/core/transport/tg/poller"
+	core_tg_screen "github.com/tsvetkovdm/go-vpnbot/internal/core/transport/tg/screen"
 )
 
 type PlansTGHandler struct {
@@ -16,6 +17,7 @@ type PlansTGHandler struct {
 	adminOnly      core_tg_middleware.Middleware
 	dialogStore    *core_tg_dialog.Store
 	createPlanFlow core_tg_dialog.Flow
+	screens        *core_tg_screen.Screens
 }
 
 type PlansService interface {
@@ -55,6 +57,7 @@ func NewPlansTGHandler(
 	plansService PlansService,
 	adminOnly core_tg_middleware.Middleware,
 	dialogStore *core_tg_dialog.Store,
+	screens *core_tg_screen.Screens,
 ) *PlansTGHandler {
 	return &PlansTGHandler{
 		bot:            bot,
@@ -62,6 +65,7 @@ func NewPlansTGHandler(
 		adminOnly:      adminOnly,
 		dialogStore:    dialogStore,
 		createPlanFlow: newCreatePlanFlow(plansService),
+		screens:        screens,
 	}
 }
 

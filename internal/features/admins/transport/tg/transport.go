@@ -7,6 +7,7 @@ import (
 	domain "github.com/tsvetkovdm/go-vpnbot/internal/core/domains"
 	core_tg_middleware "github.com/tsvetkovdm/go-vpnbot/internal/core/transport/tg/middleware"
 	core_tg_poller "github.com/tsvetkovdm/go-vpnbot/internal/core/transport/tg/poller"
+	core_tg_screen "github.com/tsvetkovdm/go-vpnbot/internal/core/transport/tg/screen"
 )
 
 type AdminsTGHandler struct {
@@ -14,6 +15,7 @@ type AdminsTGHandler struct {
 	adminsService  AdminsService
 	adminOnly      core_tg_middleware.Middleware
 	superAdminOnly core_tg_middleware.Middleware
+	screens        *core_tg_screen.Screens
 }
 
 type AdminsService interface {
@@ -38,12 +40,14 @@ func NewAdminsTGHandler(
 	adminsService AdminsService,
 	adminOnly core_tg_middleware.Middleware,
 	superAdminOnly core_tg_middleware.Middleware,
+	screens *core_tg_screen.Screens,
 ) *AdminsTGHandler {
 	return &AdminsTGHandler{
 		bot:            bot,
 		adminsService:  adminsService,
 		adminOnly:      adminOnly,
 		superAdminOnly: superAdminOnly,
+		screens:        screens,
 	}
 }
 
