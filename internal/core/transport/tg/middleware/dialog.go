@@ -39,7 +39,7 @@ func Dialog(
 				store.Delete(chatID)
 				if update.Message != nil && update.Message.IsCommand() {
 					core_tg_response.NewTGResponseHandler(log, update, bot).
-						EditMessage(chatID, session.MessageID, "Создание тарифа отменено", nil)
+						EditMessage(session.MessageID, "Создание тарифа отменено", nil)
 				}
 				next(ctx, update)
 				return
@@ -75,7 +75,7 @@ func Dialog(
 					zap.String("reason", result.Message),
 				)
 				store.Set(chatID, session)
-				responseHandler.EditMessage(chatID, session.MessageID, result.Message, nil)
+				responseHandler.EditMessage(session.MessageID, result.Message, nil)
 
 			case core_tg_dialog.Advance:
 				nextStep, ok := flow.Steps[result.Next]
@@ -97,7 +97,7 @@ func Dialog(
 				if result.Message != "" {
 					enterText = result.Message
 				}
-				responseHandler.EditMessage(chatID, session.MessageID, enterText, nil)
+				responseHandler.EditMessage(session.MessageID, enterText, nil)
 
 			case core_tg_dialog.Complete:
 				log.Debug("dialog: complete",
@@ -105,11 +105,11 @@ func Dialog(
 					zap.String("step_id", string(session.Step)),
 				)
 				store.Delete(chatID)
-				responseHandler.EditMessage(chatID, session.MessageID, result.Message, nil)
+				responseHandler.EditMessage(session.MessageID, result.Message, nil)
 
 			case core_tg_dialog.Abort:
 				store.Delete(chatID)
-				responseHandler.EditErrorResponse(chatID, session.MessageID, result.Err, result.LogMsg, nil)
+				responseHandler.EditErrorResponse(session.MessageID, result.Err, result.LogMsg, nil)
 			}
 		}
 	}

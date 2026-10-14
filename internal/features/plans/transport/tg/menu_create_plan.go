@@ -19,9 +19,7 @@ func (h *PlansTGHandler) MenuCreatePlan(
 	chatID := core_tg_request.ChatID(update)
 
 	startStep := h.createPlanFlow.Steps[h.createPlanFlow.Start]
-	responseHandler.EditMessage(
-		chatID,
-		update.CallbackQuery.Message.MessageID,
+	responseHandler.EditResponse(
 		startStep.Enter,
 		nil,
 	)

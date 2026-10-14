@@ -10,7 +10,6 @@ import (
 	core_errors "github.com/tsvetkovdm/go-vpnbot/internal/core/errors"
 	core_logger "github.com/tsvetkovdm/go-vpnbot/internal/core/logger"
 	core_tg_callback "github.com/tsvetkovdm/go-vpnbot/internal/core/transport/tg/callback"
-	core_tg_request "github.com/tsvetkovdm/go-vpnbot/internal/core/transport/tg/request"
 	core_tg_response "github.com/tsvetkovdm/go-vpnbot/internal/core/transport/tg/response"
 )
 
@@ -21,9 +20,8 @@ func (h *PlansTGHandler) MenuTogglePlan(
 	log := core_logger.FromContext(ctx)
 	responseHandler := core_tg_response.NewTGResponseHandler(log, update, h.bot)
 
-	log.Debug("invoke MenuActivatePlan handler")
+	log.Debug("invoke MenuTogglePlan handler")
 
-	chatID := core_tg_request.ChatID(update)
 	messageID := update.CallbackQuery.Message.MessageID
 	data := update.CallbackQuery.Data
 
@@ -37,7 +35,7 @@ func (h *PlansTGHandler) MenuTogglePlan(
 				),
 			),
 		)
-		responseHandler.EditErrorResponse(chatID, messageID, err, "failed to parse callback data", &markup)
+		responseHandler.EditErrorResponse(messageID, err, "failed to parse callback data", &markup)
 		return
 	}
 
@@ -59,7 +57,7 @@ func (h *PlansTGHandler) MenuTogglePlan(
 		plan, err = h.plansService.GetPlanByID(ctx, planID)
 	}
 	if err != nil {
-		responseHandler.EditErrorResponse(chatID, messageID, err, "failed to toggle plan", &backMarkup)
+		responseHandler.EditErrorResponse(messageID, err, "failed to toggle plan", &backMarkup)
 		return
 	}
 
