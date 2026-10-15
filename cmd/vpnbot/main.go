@@ -117,6 +117,7 @@ func main() {
 		logger,
 		core_tg_middleware.Panic(bot),
 		core_tg_middleware.Logger(logger),
+		core_tg_middleware.ChatLock(),
 		core_tg_middleware.Trace(),
 		core_tg_middleware.CallbackAnswer(bot),
 		core_tg_middleware.Dialog(bot, dialogStore, flows),
