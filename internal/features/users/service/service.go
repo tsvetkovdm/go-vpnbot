@@ -11,7 +11,7 @@ type UsersService struct {
 }
 
 type UsersRepository interface {
-	CreateUser(
+	UpsertUser(
 		ctx context.Context,
 		user domain.User,
 	) (domain.User, error)

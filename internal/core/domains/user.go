@@ -20,6 +20,7 @@ type User struct {
 	Version    int64
 	TelegramID int64
 	Username   *string
+	FirstName  string
 	Email      string
 	XrayUUID   uuid.UUID
 	Status     Status
@@ -30,6 +31,7 @@ type User struct {
 func NewUser(
 	telegramID int64,
 	username *string,
+	firstName string,
 ) User {
 	xrayUUID := uuid.New()
 	email := generateEmail()
@@ -40,6 +42,7 @@ func NewUser(
 		Version:    UninitializedVersion,
 		TelegramID: telegramID,
 		Username:   username,
+		FirstName:  firstName,
 		Email:      email,
 		XrayUUID:   xrayUUID,
 		Status:     StatusActive,

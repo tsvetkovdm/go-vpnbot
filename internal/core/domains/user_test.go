@@ -9,27 +9,31 @@ import (
 
 func TestNewUser(t *testing.T) {
 	username := "username"
+	firstName := "firstName"
 
 	testCases := []struct {
 		name       string
 		telegramID int64
 		username   *string
+		firstName  string
 	}{
 		{
 			name:       "with username",
 			telegramID: 123456789,
 			username:   &username,
+			firstName:  firstName,
 		},
 		{
 			name:       "without username",
 			telegramID: 987654321,
 			username:   nil,
+			firstName:  firstName,
 		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			user := NewUser(tc.telegramID, tc.username)
+			user := NewUser(tc.telegramID, tc.username, tc.firstName)
 
 			if user.TelegramID != tc.telegramID {
 				t.Errorf("TelegramID = %d, want %d", user.TelegramID, tc.telegramID)

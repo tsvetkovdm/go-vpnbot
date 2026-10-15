@@ -12,6 +12,7 @@ type UserModel struct {
 	Version    int64
 	TelegramID int64
 	Username   *string
+	FirstName  string
 	Email      string
 	XrayUUID   uuid.UUID
 	Status     string
@@ -25,6 +26,7 @@ func (m UserModel) toDomain() domain.User {
 		Version:    m.Version,
 		TelegramID: m.TelegramID,
 		Username:   m.Username,
+		FirstName:  m.FirstName,
 		Email:      m.Email,
 		XrayUUID:   m.XrayUUID,
 		Status:     domain.Status(m.Status),

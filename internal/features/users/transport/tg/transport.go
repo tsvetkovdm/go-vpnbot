@@ -16,7 +16,7 @@ type UsersTGHandler struct {
 }
 
 type UsersService interface {
-	GetOrCreateUser(
+	UpsertUser(
 		ctx context.Context,
 		user domain.User,
 	) (domain.User, error)

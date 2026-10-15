@@ -18,7 +18,7 @@ func (r *UsersRepository) GetUserByTelegramID(
 	defer cancel()
 
 	query := `
-	SELECT id, version, telegram_id, username, email, xray_uuid, status, created_at, updated_at
+	SELECT id, version, telegram_id, username, first_name, email, xray_uuid, status, created_at, updated_at
 	FROM vpnbot.users
 	WHERE telegram_id=$1;
 	`
@@ -31,6 +31,7 @@ func (r *UsersRepository) GetUserByTelegramID(
 		&userModel.Version,
 		&userModel.TelegramID,
 		&userModel.Username,
+		&userModel.FirstName,
 		&userModel.Email,
 		&userModel.XrayUUID,
 		&userModel.Status,

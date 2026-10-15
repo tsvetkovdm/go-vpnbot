@@ -23,14 +23,14 @@ func (h *UsersTGHandler) Start(
 	userTG := core_tg_request.FromUser(update)
 	var userDomain domain.User
 	if userTG.UserName == "" {
-		userDomain = domain.NewUser(userTG.ID, nil)
+		userDomain = domain.NewUser(userTG.ID, nil, userTG.FirstName)
 	} else {
-		userDomain = domain.NewUser(userTG.ID, &userTG.UserName)
+		userDomain = domain.NewUser(userTG.ID, &userTG.UserName, userTG.FirstName)
 	}
 
-	userDomain, err := h.usersService.GetOrCreateUser(ctx, userDomain)
+	userDomain, err := h.usersService.UpsertUser(ctx, userDomain)
 	if err != nil {
-		responseHandler.ErrorResponse(err, "failed to create user")
+		responseHandler.ErrorResponse(err, "failed to upsert user")
 		return
 	}
 

@@ -6,6 +6,7 @@ CREATE TABLE users (
     version     BIGINT       NOT NULL DEFAULT 1,
     telegram_id BIGINT       NOT NULL UNIQUE,
     username    VARCHAR(32),
+    first_name  VARCHAR(64)  NOT NULL,
     email       VARCHAR(255) NOT NULL UNIQUE,
     xray_uuid   UUID         NOT NULL UNIQUE,
     status      VARCHAR(20)  NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'blocked')),
