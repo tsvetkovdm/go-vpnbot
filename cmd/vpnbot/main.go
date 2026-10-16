@@ -22,6 +22,9 @@ import (
 	plans_postgres_repository "github.com/tsvetkovdm/go-vpnbot/internal/features/plans/repository/postgres"
 	plans_service "github.com/tsvetkovdm/go-vpnbot/internal/features/plans/service"
 	plans_transport_tg "github.com/tsvetkovdm/go-vpnbot/internal/features/plans/transport/tg"
+	subscriptions_postgres_repository "github.com/tsvetkovdm/go-vpnbot/internal/features/subscriptions/repository/postgres"
+	subscriptions_service "github.com/tsvetkovdm/go-vpnbot/internal/features/subscriptions/service"
+	subscriptions_transport_tg "github.com/tsvetkovdm/go-vpnbot/internal/features/subscriptions/transport/tg"
 	users_postgres_repository "github.com/tsvetkovdm/go-vpnbot/internal/features/users/repository/postgres"
 	users_service "github.com/tsvetkovdm/go-vpnbot/internal/features/users/service"
 	users_transport_tg "github.com/tsvetkovdm/go-vpnbot/internal/features/users/transport/tg"
@@ -92,6 +95,15 @@ func main() {
 		dialogStore,
 	)
 
+	logger.Debug("initializing feature", zap.String("feature", "subscriptions"))
+	subscriptionsRepository := subscriptions_postgres_repository.NewSubscriptionsRepository(pool)
+	subscriptionsService := subscriptions_service.NewSubscriptionsService(subscriptionsRepository)
+	subscriptionsTransportTG := subscriptions_transport_tg.NewSubscriptionsTGHandler(
+		bot,
+		subscriptionsService,
+		adminOnly,
+	)
+
 	logger.Debug("initializing feature", zap.String("feature", "plans"))
 	plansRepository := plans_postgres_repository.NewPlansRepository(pool)
 	plansService := plans_service.NewPlansService(plansRepository)
@@ -109,6 +121,7 @@ func main() {
 	router.RegisterRoutes(usersTransportTG.Routes()...)
 	router.RegisterRoutes(adminsTransportTG.Routes()...)
 	router.RegisterRoutes(plansTransportTG.Routes()...)
+	router.RegisterRoutes(subscriptionsTransportTG.Routes()...)
 
 	flows := make(map[string]core_tg_dialog.Flow)
 	for _, flow := range usersTransportTG.Flows() {

@@ -56,6 +56,24 @@ func userCardMarkup(o domain.UserOverview, filter domain.UserFilter, page int) t
 	userID := strconv.FormatInt(o.User.ID, 10)
 	f := string(filter)
 	p := strconv.Itoa(page)
+	var rows [][]tgbotapi.InlineKeyboardButton
+
+	if o.User.Status != domain.StatusBlocked {
+		version := "0" // подписки ещё нет
+		if o.Subscription != nil {
+			version = strconv.FormatInt(o.Subscription.Version, 10)
+		}
+		rows = append(rows, tgbotapi.NewInlineKeyboardRow(
+			tgbotapi.NewInlineKeyboardButtonData(
+				"➕ 30 дней",
+				core_tg_callback.Build("subs", "extend", userID, "30", version, f, p),
+			),
+			tgbotapi.NewInlineKeyboardButtonData(
+				"➕ 90 дней",
+				core_tg_callback.Build("subs", "extend", userID, "90", version, f, p),
+			),
+		))
+	}
 
 	blockButton := tgbotapi.NewInlineKeyboardButtonData(
 		"🚫 Заблокировать",
@@ -67,13 +85,13 @@ func userCardMarkup(o domain.UserOverview, filter domain.UserFilter, page int) t
 			core_tg_callback.Build("users", "unblock", userID, f, p),
 		)
 	}
+	rows = append(rows, tgbotapi.NewInlineKeyboardRow(blockButton))
 
-	return tgbotapi.NewInlineKeyboardMarkup(
-		tgbotapi.NewInlineKeyboardRow(blockButton),
-		tgbotapi.NewInlineKeyboardRow(
-			tgbotapi.NewInlineKeyboardButtonData("⬅️ Назад", listCallback(filter, page)),
-		),
-	)
+	rows = append(rows, tgbotapi.NewInlineKeyboardRow(
+		tgbotapi.NewInlineKeyboardButtonData("⬅️ Назад", listCallback(filter, page)),
+	))
+
+	return tgbotapi.NewInlineKeyboardMarkup(rows...)
 }
 
 func parseUserCallback(data string) (int64, domain.UserFilter, int, error) {
