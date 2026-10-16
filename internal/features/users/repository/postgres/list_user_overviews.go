@@ -22,13 +22,13 @@ func (r *UsersRepository) ListUserOverviews(
 	}
 
 	query := `
-	SELECT ` + userOverviewColumns + `
+	SELECT ` + userOverviewColumns + `,
 		   COUNT(*) OVER() AS total
 	FROM vpnbot.users u
 	LEFT JOIN vpnbot.subscriptions s ON s.user_id = u.id
 	WHERE ` + where + `
 	ORDER BY ` + orderBy + `
-	LIMIT $1 OFFSET $2
+	LIMIT $1 OFFSET $2;
 	`
 
 	rows, err := r.pool.Query(ctx, query, limit, offset)

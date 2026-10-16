@@ -38,7 +38,7 @@ type SubscriptionsRepository interface {
 	) (int64, error)
 }
 
-func NewSubscriptionService(
+func NewSubscriptionsService(
 	subscriptionsRepository SubscriptionsRepository,
 ) *SubscriptionsService {
 	return &SubscriptionsService{

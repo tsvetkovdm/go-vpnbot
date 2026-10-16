@@ -35,6 +35,17 @@ type UsersService interface {
 		ctx context.Context,
 		telegramID int64,
 	) error
+
+	GetUserOverview(
+		ctx context.Context,
+		userID int64,
+	) (domain.UserOverview, error)
+
+	ListUserOverviews(
+		ctx context.Context,
+		filter domain.UserFilter,
+		limit, offset int,
+	) ([]domain.UserOverview, int, error)
 }
 
 func NewUsersTGHandler(
@@ -72,6 +83,18 @@ func (h *UsersTGHandler) Routes() []core_tg_poller.Route {
 			"delete",
 			core_tg_poller.TriggerCommand,
 			h.DeleteUser,
+			h.adminOnly,
+		),
+		core_tg_poller.NewRoute(
+			"users:menu",
+			core_tg_poller.TriggerCallbackPrefix,
+			h.MenuRoot,
+			h.adminOnly,
+		),
+		core_tg_poller.NewRoute(
+			"users:list:",
+			core_tg_poller.TriggerCallbackPrefix,
+			h.MenuListUsers,
 			h.adminOnly,
 		),
 	}
