@@ -64,6 +64,8 @@ func main() {
 	}
 	defer pool.Close()
 
+	dialogStore := core_tg_dialog.NewStore(15 * time.Minute)
+
 	logger.Debug("initializing feature", zap.String("feature", "admins"))
 	adminsRepository := admins_postgres_repository.NewAdminsRepository(pool)
 	adminsService := admins_service.NewAdminsService(adminsRepository)
@@ -83,12 +85,16 @@ func main() {
 	logger.Debug("initializing feature", zap.String("feature", "users"))
 	usersRepository := users_postgres_repository.NewUsersRepository(pool)
 	usersService := users_service.NewUsersService(usersRepository)
-	usersTransportTG := users_transport_tg.NewUsersTGHandler(bot, usersService, adminOnly)
+	usersTransportTG := users_transport_tg.NewUsersTGHandler(
+		bot,
+		usersService,
+		adminOnly,
+		dialogStore,
+	)
 
 	logger.Debug("initializing feature", zap.String("feature", "plans"))
 	plansRepository := plans_postgres_repository.NewPlansRepository(pool)
 	plansService := plans_service.NewPlansService(plansRepository)
-	dialogStore := core_tg_dialog.NewStore(15 * time.Minute)
 	plansTransportTG := plans_transport_tg.NewPlansTGHandler(
 		bot,
 		plansService,
@@ -105,6 +111,9 @@ func main() {
 	router.RegisterRoutes(plansTransportTG.Routes()...)
 
 	flows := make(map[string]core_tg_dialog.Flow)
+	for _, flow := range usersTransportTG.Flows() {
+		flows[flow.ID] = flow
+	}
 	for _, flow := range plansTransportTG.Flows() {
 		flows[flow.ID] = flow
 	}

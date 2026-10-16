@@ -14,6 +14,14 @@ func (r *UsersRepository) GetUserOverview(
 	ctx context.Context,
 	userID int64,
 ) (domain.UserOverview, error) {
+	return r.getUserOverview(ctx, "u.id = $1", userID)
+}
+
+func (r *UsersRepository) getUserOverview(
+	ctx context.Context,
+	where string,
+	arg any,
+) (domain.UserOverview, error) {
 	ctx, cancel := context.WithTimeout(ctx, r.pool.OpTimeout())
 	defer cancel()
 
@@ -21,18 +29,16 @@ func (r *UsersRepository) GetUserOverview(
 	SELECT ` + userOverviewColumns + `
 	FROM vpnbot.users u
 	LEFT JOIN vpnbot.subscriptions s ON s.user_id = u.id
-	WHERE u.id = $1
+	WHERE ` + where + `
+	ORDER BY u.updated_at DESC
+	LIMIT 1;
 	`
 
-	row := r.pool.QueryRow(ctx, query, userID)
-
 	var m UserOverviewModel
-	if err := row.Scan(m.scanDest()...); err != nil {
+	if err := r.pool.QueryRow(ctx, query, arg).Scan(m.scanDest()...); err != nil {
 		if errors.Is(err, core_postgres_pool.ErrNoRows) {
 			return domain.UserOverview{}, fmt.Errorf(
-				"user overview with user_id=%d: %w",
-				userID,
-				core_errors.ErrNotFound,
+				"user overview where %s (%v): %w", where, arg, core_errors.ErrNotFound,
 			)
 		}
 		return domain.UserOverview{}, fmt.Errorf("scan error: %w", err)

@@ -46,6 +46,16 @@ type UsersRepository interface {
 		ctx context.Context,
 		userID int64,
 	) (domain.UserOverview, error)
+
+	GetUserOverviewByTelegramID(
+		ctx context.Context,
+		telegramID int64,
+	) (domain.UserOverview, error)
+
+	GetUserOverviewByUsername(
+		ctx context.Context,
+		username string,
+	) (domain.UserOverview, error)
 }
 
 func NewUsersService(

@@ -18,6 +18,8 @@ func (h *PlansTGHandler) MenuCreatePlan(
 	responseHandler := core_tg_response.NewTGResponseHandler(log, update, h.bot)
 	chatID := core_tg_request.ChatID(update)
 
+	log.Debug("invoke MenuCreatePlan handler")
+
 	startStep := h.createPlanFlow.Steps[h.createPlanFlow.Start]
 	markup := core_tg_dialog.StepMarkup(startStep)
 	responseHandler.EditResponse(startStep.Enter, &markup)

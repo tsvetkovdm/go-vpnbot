@@ -20,6 +20,10 @@ func (h *UsersTGHandler) MenuRoot(
 
 	var rows [][]tgbotapi.InlineKeyboardButton
 
+	rows = append(rows, tgbotapi.NewInlineKeyboardRow(
+		tgbotapi.NewInlineKeyboardButtonData("🔍 Найти", "users:search"),
+	))
+
 	for _, filter := range filterOrder {
 		data := core_tg_callback.Build("users", "list", string(filter), "0")
 		button := tgbotapi.NewInlineKeyboardButtonData(filterTitles[filter], data)

@@ -5,14 +5,17 @@ import (
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	domain "github.com/tsvetkovdm/go-vpnbot/internal/core/domains"
+	core_tg_dialog "github.com/tsvetkovdm/go-vpnbot/internal/core/transport/tg/dialog"
 	core_tg_middleware "github.com/tsvetkovdm/go-vpnbot/internal/core/transport/tg/middleware"
 	core_tg_poller "github.com/tsvetkovdm/go-vpnbot/internal/core/transport/tg/poller"
 )
 
 type UsersTGHandler struct {
-	bot          *tgbotapi.BotAPI
-	usersService UsersService
-	adminOnly    core_tg_middleware.Middleware
+	bot            *tgbotapi.BotAPI
+	usersService   UsersService
+	adminOnly      core_tg_middleware.Middleware
+	dialogStore    *core_tg_dialog.Store
+	searchUserFlow core_tg_dialog.Flow
 }
 
 type UsersService interface {
@@ -41,6 +44,16 @@ type UsersService interface {
 		userID int64,
 	) (domain.UserOverview, error)
 
+	GetUserOverviewByTelegramID(
+		ctx context.Context,
+		telegramID int64,
+	) (domain.UserOverview, error)
+
+	GetUserOverviewByUsername(
+		ctx context.Context,
+		username string,
+	) (domain.UserOverview, error)
+
 	ListUserOverviews(
 		ctx context.Context,
 		filter domain.UserFilter,
@@ -52,11 +65,14 @@ func NewUsersTGHandler(
 	bot *tgbotapi.BotAPI,
 	usersService UsersService,
 	adminOnly core_tg_middleware.Middleware,
+	dialogStore *core_tg_dialog.Store,
 ) *UsersTGHandler {
 	return &UsersTGHandler{
-		bot:          bot,
-		usersService: usersService,
-		adminOnly:    adminOnly,
+		bot:            bot,
+		usersService:   usersService,
+		adminOnly:      adminOnly,
+		dialogStore:    dialogStore,
+		searchUserFlow: newSearchUserFlow(usersService),
 	}
 }
 
@@ -115,5 +131,15 @@ func (h *UsersTGHandler) Routes() []core_tg_poller.Route {
 			h.MenuBlockUser,
 			h.adminOnly,
 		),
+		core_tg_poller.NewRoute(
+			"users:search",
+			core_tg_poller.TriggerCallbackPrefix,
+			h.MenuSearchUser,
+			h.adminOnly,
+		),
 	}
+}
+
+func (h *UsersTGHandler) Flows() []core_tg_dialog.Flow {
+	return []core_tg_dialog.Flow{h.searchUserFlow}
 }
