@@ -62,3 +62,11 @@ func backToUsersMenuMarkup() tgbotapi.InlineKeyboardMarkup {
 		),
 	)
 }
+
+func backToListMarkup(filter domain.UserFilter, page int) tgbotapi.InlineKeyboardMarkup {
+	return tgbotapi.NewInlineKeyboardMarkup(
+		tgbotapi.NewInlineKeyboardRow(
+			tgbotapi.NewInlineKeyboardButtonData("⬅️ Назад", listCallback(filter, page)),
+		),
+	)
+}

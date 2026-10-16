@@ -97,5 +97,23 @@ func (h *UsersTGHandler) Routes() []core_tg_poller.Route {
 			h.MenuListUsers,
 			h.adminOnly,
 		),
+		core_tg_poller.NewRoute(
+			"users:view:",
+			core_tg_poller.TriggerCallbackPrefix,
+			h.MenuViewUser,
+			h.adminOnly,
+		),
+		core_tg_poller.NewRoute(
+			"users:block:",
+			core_tg_poller.TriggerCallbackPrefix,
+			h.MenuBlockUser,
+			h.adminOnly,
+		),
+		core_tg_poller.NewRoute(
+			"users:unblock:",
+			core_tg_poller.TriggerCallbackPrefix,
+			h.MenuBlockUser,
+			h.adminOnly,
+		),
 	}
 }

@@ -109,6 +109,12 @@ func ValidateExtendDays(days int) error {
 	return nil
 }
 
+func (s Subscription) DaysLeft(now time.Time) int {
+	today := dateOf(now)
+	paid := s.PaidUntil(now.Location())
+	return int(paid.Sub(today).Hours() / 24)
+}
+
 func dateOf(t time.Time) time.Time {
 	return time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, t.Location())
 }
