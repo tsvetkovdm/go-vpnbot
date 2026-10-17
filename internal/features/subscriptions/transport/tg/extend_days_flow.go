@@ -49,7 +49,7 @@ func stepAwaitExtendDays(svc SubscriptionsService) core_tg_dialog.Step {
 				return core_tg_dialog.Result{Kind: core_tg_dialog.Abort, Err: err, LogMsg: "broken dialog session"}
 			}
 
-			back := backToCardMarkup(target.userID, target.filter, target.page)
+			backToCard := backToCardMarkup(target.userID, target.filter, target.page)
 
 			sub, err := svc.ExtendDays(ctx, target.userID, days, target.version)
 			switch {
@@ -60,7 +60,7 @@ func stepAwaitExtendDays(svc SubscriptionsService) core_tg_dialog.Step {
 				}
 			case errors.Is(err, core_errors.ErrConflict):
 				core_logger.FromContext(ctx).Info("subscription changed concurrently", zap.Error(err))
-				return core_tg_dialog.Result{Kind: core_tg_dialog.Complete, Message: conflictText, Markup: &back}
+				return core_tg_dialog.Result{Kind: core_tg_dialog.Complete, Message: conflictText, Markup: &backToCard}
 			case err != nil:
 				return core_tg_dialog.Result{Kind: core_tg_dialog.Abort, Err: err, LogMsg: "failed to extend subscription"}
 			}
@@ -72,7 +72,7 @@ func stepAwaitExtendDays(svc SubscriptionsService) core_tg_dialog.Step {
 					days,
 					sub.PaidUntil(time.Local).Format("02.01.2006"),
 				),
-				Markup: &back,
+				Markup: &backToCard,
 			}
 		},
 	}

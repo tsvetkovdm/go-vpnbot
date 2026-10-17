@@ -21,35 +21,50 @@ func assembleUserCard(
 	var sb strings.Builder
 
 	sb.WriteString(fmt.Sprintf("👤 %s\n", displayName(o.User)))
-	sb.WriteString(fmt.Sprintf("Telegram ID: %d\n\n", o.User.TelegramID))
-	sb.WriteString(accessStatus(o, now))
+	sb.WriteString(fmt.Sprintf("🆔: %d\n\n", o.User.TelegramID))
+	sb.WriteString(subscriptionLines(o, now))
 
 	return sb.String(), userCardMarkup(o, filter, page)
 }
 
-func accessStatus(o domain.UserOverview, now time.Time) string {
+// Строки о подписке: дата (если подписка есть) и статус.
+func subscriptionLines(o domain.UserOverview, now time.Time) string {
+	var sb strings.Builder
+	sub := o.Subscription
+
+	if sub != nil {
+		paidUntil := sub.PaidUntil(time.Local).Format("02.01.2006")
+		if sub.HasAccess(now) {
+			sb.WriteString(fmt.Sprintf("📅 Действует до: %s (%s)\n", paidUntil, daysLeftText(sub.DaysLeft(now))))
+		} else {
+			sb.WriteString(fmt.Sprintf("📅 Действовал до: %s\n", paidUntil))
+		}
+	}
+
+	sb.WriteString(statusText(o, now))
+	return sb.String()
+}
+
+func statusText(o domain.UserOverview, now time.Time) string {
 	sub := o.Subscription
 
 	switch {
 	case o.User.Status == domain.StatusBlocked:
-		return "🚫 Заблокирован"
+		return "🚫 Статус: заблокирован"
 	case sub == nil:
-		return "❌ Доступа не было"
+		return "⚪ Статус: нет подписки"
 	case !sub.HasAccess(now):
-		return "❌ Доступ закончился " + sub.PaidUntil(time.Local).Format("02.01.2006")
+		return "🔴 Статус: Истёк"
+	default:
+		return "🟢 Статус: Активен"
 	}
+}
 
-	left := "последний день"
-	if days := sub.DaysLeft(now); days > 0 {
-		left = fmt.Sprintf("осталось %d дн.", days)
+func daysLeftText(days int) string {
+	if days == 0 {
+		return "последний день"
 	}
-
-	return fmt.Sprintf(
-		"✅ Доступ до %s (%s)\n📅 Дата оплаты: %d-е число",
-		sub.PaidUntil(time.Local).Format("02.01.2006"),
-		left,
-		sub.AnchorDay,
-	)
+	return fmt.Sprintf("ещё %d дн.", days)
 }
 
 func userCardMarkup(o domain.UserOverview, filter domain.UserFilter, page int) tgbotapi.InlineKeyboardMarkup {
@@ -75,11 +90,11 @@ func userCardMarkup(o domain.UserOverview, filter domain.UserFilter, page int) t
 		))
 		rows = append(rows, tgbotapi.NewInlineKeyboardRow(
 			tgbotapi.NewInlineKeyboardButtonData(
-				"✏️ Своё число",
+				"✏️ Добавить дней",
 				core_tg_callback.Build("subs", "days", userID, version, f, p),
 			),
 			tgbotapi.NewInlineKeyboardButtonData(
-				"📅 Дата",
+				"📅 Установить дату",
 				core_tg_callback.Build("subs", "date", userID, version, f, p),
 			),
 		))

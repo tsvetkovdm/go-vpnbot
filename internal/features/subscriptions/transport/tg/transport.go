@@ -17,6 +17,7 @@ type SubscriptionsTGHandler struct {
 	adminOnly            core_tg_middleware.Middleware
 	dialogStore          *core_tg_dialog.Store
 	extendDaysFlow       core_tg_dialog.Flow
+	setDateFlow          core_tg_dialog.Flow
 }
 
 type SubscriptionsService interface {
@@ -52,6 +53,7 @@ func NewSubscriptionsTGHandler(
 		adminOnly:            adminOnly,
 		dialogStore:          dialogStore,
 		extendDaysFlow:       newExtendDaysFlow(subscriptionsService),
+		setDateFlow:          newSetDateFlow(subscriptionsService),
 	}
 }
 
@@ -69,9 +71,15 @@ func (h *SubscriptionsTGHandler) Routes() []core_tg_poller.Route {
 			h.MenuStartDialog,
 			h.adminOnly,
 		),
+		core_tg_poller.NewRoute(
+			"subs:date:",
+			core_tg_poller.TriggerCallbackPrefix,
+			h.MenuStartDialog,
+			h.adminOnly,
+		),
 	}
 }
 
 func (h *SubscriptionsTGHandler) Flows() []core_tg_dialog.Flow {
-	return []core_tg_dialog.Flow{h.extendDaysFlow}
+	return []core_tg_dialog.Flow{h.extendDaysFlow, h.setDateFlow}
 }
