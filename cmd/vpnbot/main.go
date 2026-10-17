@@ -93,6 +93,7 @@ func main() {
 		usersService,
 		adminOnly,
 		dialogStore,
+		screens,
 	)
 
 	logger.Debug("initializing feature", zap.String("feature", "subscriptions"))

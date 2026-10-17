@@ -8,6 +8,7 @@ import (
 	core_tg_dialog "github.com/tsvetkovdm/go-vpnbot/internal/core/transport/tg/dialog"
 	core_tg_middleware "github.com/tsvetkovdm/go-vpnbot/internal/core/transport/tg/middleware"
 	core_tg_poller "github.com/tsvetkovdm/go-vpnbot/internal/core/transport/tg/poller"
+	core_tg_screen "github.com/tsvetkovdm/go-vpnbot/internal/core/transport/tg/screen"
 )
 
 type UsersTGHandler struct {
@@ -16,6 +17,7 @@ type UsersTGHandler struct {
 	adminOnly      core_tg_middleware.Middleware
 	dialogStore    *core_tg_dialog.Store
 	searchUserFlow core_tg_dialog.Flow
+	screens        *core_tg_screen.Screens
 }
 
 type UsersService interface {
@@ -66,6 +68,7 @@ func NewUsersTGHandler(
 	usersService UsersService,
 	adminOnly core_tg_middleware.Middleware,
 	dialogStore *core_tg_dialog.Store,
+	screens *core_tg_screen.Screens,
 ) *UsersTGHandler {
 	return &UsersTGHandler{
 		bot:            bot,
@@ -73,6 +76,7 @@ func NewUsersTGHandler(
 		adminOnly:      adminOnly,
 		dialogStore:    dialogStore,
 		searchUserFlow: newSearchUserFlow(usersService),
+		screens:        screens,
 	}
 }
 
@@ -100,6 +104,11 @@ func (h *UsersTGHandler) Routes() []core_tg_poller.Route {
 			core_tg_poller.TriggerCommand,
 			h.DeleteUser,
 			h.adminOnly,
+		),
+		core_tg_poller.NewRoute(
+			"users:home",
+			core_tg_poller.TriggerCallbackPrefix,
+			h.MenuHome,
 		),
 		core_tg_poller.NewRoute(
 			"users:menu",
