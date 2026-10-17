@@ -36,11 +36,7 @@ func (h *SubscriptionsTGHandler) MenuExtendDays(
 
 	cb, err := parseExtendDaysCallback(update.CallbackQuery.Data)
 	if err != nil {
-		adminMenu := tgbotapi.NewInlineKeyboardMarkup(
-			tgbotapi.NewInlineKeyboardRow(
-				tgbotapi.NewInlineKeyboardButtonData("⬅️ В меню", "admins:menu"),
-			),
-		)
+		adminMenu := adminMenuMarkup()
 		responseHandler.EditErrorResponse(messageID, err, "failed to parse callback data", &adminMenu)
 		return
 	}
@@ -52,7 +48,7 @@ func (h *SubscriptionsTGHandler) MenuExtendDays(
 	if errors.Is(err, core_errors.ErrConflict) {
 		log.Info("subscription changed concurrently", zap.Error(err))
 		responseHandler.EditResponse(
-			"⚠️ Действие не выполнено: данные изменились (возможно, кнопка нажата дважды).\nОткройте карточку и проверьте срок.",
+			conflictText,
 			&backMarkup,
 		)
 		return

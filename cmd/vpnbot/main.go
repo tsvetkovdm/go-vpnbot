@@ -102,6 +102,7 @@ func main() {
 		bot,
 		subscriptionsService,
 		adminOnly,
+		dialogStore,
 	)
 
 	logger.Debug("initializing feature", zap.String("feature", "plans"))
@@ -128,6 +129,9 @@ func main() {
 		flows[flow.ID] = flow
 	}
 	for _, flow := range plansTransportTG.Flows() {
+		flows[flow.ID] = flow
+	}
+	for _, flow := range subscriptionsTransportTG.Flows() {
 		flows[flow.ID] = flow
 	}
 

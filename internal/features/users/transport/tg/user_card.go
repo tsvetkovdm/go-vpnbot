@@ -73,6 +73,16 @@ func userCardMarkup(o domain.UserOverview, filter domain.UserFilter, page int) t
 				core_tg_callback.Build("subs", "extend", userID, "90", version, f, p),
 			),
 		))
+		rows = append(rows, tgbotapi.NewInlineKeyboardRow(
+			tgbotapi.NewInlineKeyboardButtonData(
+				"✏️ Своё число",
+				core_tg_callback.Build("subs", "days", userID, version, f, p),
+			),
+			tgbotapi.NewInlineKeyboardButtonData(
+				"📅 Дата",
+				core_tg_callback.Build("subs", "date", userID, version, f, p),
+			),
+		))
 	}
 
 	blockButton := tgbotapi.NewInlineKeyboardButtonData(
