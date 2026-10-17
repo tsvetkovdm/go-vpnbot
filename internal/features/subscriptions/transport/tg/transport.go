@@ -60,6 +60,12 @@ func NewSubscriptionsTGHandler(
 func (h *SubscriptionsTGHandler) Routes() []core_tg_poller.Route {
 	return []core_tg_poller.Route{
 		core_tg_poller.NewRoute(
+			"extend",
+			core_tg_poller.TriggerCommand,
+			h.ExtendCommand,
+			h.adminOnly,
+		),
+		core_tg_poller.NewRoute(
 			"subs:extend:",
 			core_tg_poller.TriggerCallbackPrefix,
 			h.MenuExtendDays,

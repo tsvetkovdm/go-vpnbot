@@ -10,8 +10,6 @@ import (
 	core_errors "github.com/tsvetkovdm/go-vpnbot/internal/core/errors"
 )
 
-const SkipVersionCheck int64 = -1
-
 type SubscriptionsService struct {
 	subscriptionsRepository SubscriptionsRepository
 }
@@ -68,7 +66,7 @@ func checkVersion(sub domain.Subscription, found bool, expected int64) error {
 		current = sub.Version
 	}
 
-	if expected != SkipVersionCheck && expected != current {
+	if expected != domain.SubscriptionSkipVersionCheck && expected != current {
 		return fmt.Errorf("subscription version: expected %d, current %d: %w",
 			expected, current, core_errors.ErrConflict)
 	}

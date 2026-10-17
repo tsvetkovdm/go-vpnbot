@@ -8,8 +8,9 @@ import (
 )
 
 const (
-	SubscriptionMaxExtendDays = 366
-	SubscriptionMaxYearsAhead = 5
+	SubscriptionMaxExtendDays          = 366
+	SubscriptionMaxYearsAhead          = 5
+	SubscriptionSkipVersionCheck int64 = -1
 )
 
 var (
