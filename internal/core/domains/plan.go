@@ -12,20 +12,11 @@ import (
 
 const (
 	PlanTitleMaxLen = 30
-	PlanMaxMonths   = 24
-	PlanMaxDays     = 366
 )
 
-var PlanMaxPrice = decimal.NewFromInt(1_000_000)
-
 var (
-	ErrPlanTitleEmpty      = fmt.Errorf("plan title is empty: %w", core_errors.ErrInvalidArgument)
-	ErrPlanTitleTooLong    = fmt.Errorf("plan title too long: %w", core_errors.ErrInvalidArgument)
-	ErrPlanDurationInvalid = fmt.Errorf("plan duration must be positive months or days, not both: %w", core_errors.ErrInvalidArgument)
-	ErrPlanDurationTooLong = fmt.Errorf("plan duration too long: %w", core_errors.ErrInvalidArgument)
-	ErrPlanPriceNegative   = fmt.Errorf("plan price is negative: %w", core_errors.ErrInvalidArgument)
-	ErrPlanPriceTooHigh    = fmt.Errorf("plan price too high: %w", core_errors.ErrInvalidArgument)
-	ErrPlanPricePrecision  = fmt.Errorf("plan price precision is invalid: %w", core_errors.ErrInvalidArgument)
+	ErrPlanTitleEmpty   = fmt.Errorf("plan title is empty: %w", core_errors.ErrInvalidArgument)
+	ErrPlanTitleTooLong = fmt.Errorf("plan title too long: %w", core_errors.ErrInvalidArgument)
 )
 
 type Plan struct {
@@ -46,38 +37,6 @@ func ValidatePlanTitle(title string) error {
 
 	if n := utf8.RuneCountInString(title); n > PlanTitleMaxLen {
 		return fmt.Errorf("%w: got %d, max %d", ErrPlanTitleTooLong, n, PlanTitleMaxLen)
-	}
-
-	return nil
-}
-
-func ValidatePlanDuration(d Duration) error {
-	if d.Months < 0 || d.Days < 0 || d.Microseconds != 0 {
-		return fmt.Errorf("%w: %+v", ErrPlanDurationInvalid, d)
-	}
-
-	if (d.Months > 0) == (d.Days > 0) {
-		return fmt.Errorf("%w: %+v", ErrPlanDurationInvalid, d)
-	}
-
-	if d.Months > PlanMaxMonths || d.Days > PlanMaxDays {
-		return fmt.Errorf("%w: %+v", ErrPlanDurationTooLong, d)
-	}
-
-	return nil
-}
-
-func ValidatePlanPrice(price decimal.Decimal) error {
-	if price.IsNegative() {
-		return fmt.Errorf("%w: %s", ErrPlanPriceNegative, price)
-	}
-
-	if price.GreaterThan(PlanMaxPrice) {
-		return fmt.Errorf("%w: %s", ErrPlanPriceTooHigh, price)
-	}
-
-	if !price.Equal(price.Round(2)) {
-		return fmt.Errorf("%w: %s", ErrPlanPricePrecision, price)
 	}
 
 	return nil
