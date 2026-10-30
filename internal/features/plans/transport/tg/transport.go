@@ -167,6 +167,11 @@ func (h *PlansTGHandler) Routes() []core_tg_poller.Route {
 			h.MenuDeletePlanConfirm,
 			h.adminOnly,
 		),
+		core_tg_poller.NewRoute(
+			"plans:public",
+			core_tg_poller.TriggerCallbackPrefix,
+			h.MenuPublicPlans,
+		),
 	}
 }
 

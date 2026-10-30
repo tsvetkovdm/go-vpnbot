@@ -1,5 +1,7 @@
 package core_tg_dialog
 
+import tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+
 type ResultKind int
 
 const (
@@ -23,4 +25,7 @@ type Result struct {
 	// Err и LogMsg используются только при Abort
 	Err    error
 	LogMsg string
+
+	// Markup — только для Complete: клавиатура вместо flow.ExitMarkup (nil — использовать ExitMarkup).
+	Markup *tgbotapi.InlineKeyboardMarkup
 }

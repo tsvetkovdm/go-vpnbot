@@ -3,6 +3,7 @@ package plans_transport_tg
 import (
 	"fmt"
 
+	decimal "github.com/shopspring/decimal"
 	domain "github.com/tsvetkovdm/go-vpnbot/internal/core/domains"
 )
 
@@ -54,4 +55,14 @@ func formatPlanInfo(plan domain.Plan) string {
 		plan.CreatedAt.Format("2006-01-02 15:04"),
 		plan.UpdatedAt.Format("2006-01-02 15:04"),
 	)
+}
+
+func formatPriceForUser(price decimal.Decimal) string {
+	if price.IsZero() {
+		return "бесплатно"
+	}
+	if price.IsInteger() {
+		return price.String() + " ₽"
+	}
+	return price.StringFixed(2) + " ₽"
 }

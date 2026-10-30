@@ -2,7 +2,7 @@ package users_transport_tg
 
 import (
 	"context"
-	"fmt"
+	"time"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	domain "github.com/tsvetkovdm/go-vpnbot/internal/core/domains"
@@ -23,41 +23,23 @@ func (h *UsersTGHandler) Start(
 	userTG := core_tg_request.FromUser(update)
 	var userDomain domain.User
 	if userTG.UserName == "" {
-		userDomain = domain.NewUser(userTG.ID, nil)
+		userDomain = domain.NewUser(userTG.ID, nil, userTG.FirstName)
 	} else {
-		userDomain = domain.NewUser(userTG.ID, &userTG.UserName)
+		userDomain = domain.NewUser(userTG.ID, &userTG.UserName, userTG.FirstName)
 	}
 
-	userDomain, err := h.usersService.GetOrCreateUser(ctx, userDomain)
+	user, err := h.usersService.UpsertUser(ctx, userDomain)
 	if err != nil {
-		responseHandler.ErrorResponse(err, "failed to create user")
+		responseHandler.ErrorResponse(err, "failed to upsert user")
 		return
 	}
 
-	responseHandler.TextResponse(mainMenuText(userDomain))
-}
-
-func mainMenuText(user domain.User) string {
-	username := "не указан"
-	if user.Username != nil {
-		username = *user.Username
+	overview, err := h.usersService.GetUserOverview(ctx, user.ID)
+	if err != nil {
+		responseHandler.ErrorResponse(err, "failed to get user overview")
+		return
 	}
-	return fmt.Sprintf(
-		`
-		Добро пожаловать, %s!
-		TelegramID: %d
-		Email: %s
-		XrayUUID: %s
-		Status: %s
-		CreatedAt: %s
-		UpdatedAt: %s
-		`,
-		username,
-		user.TelegramID,
-		user.Email,
-		user.XrayUUID,
-		user.Status,
-		user.CreatedAt,
-		user.UpdatedAt,
-	)
+
+	text, markup := assembleHome(overview, time.Now())
+	h.screens.Show(ctx, update, text, markup)
 }

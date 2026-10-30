@@ -110,7 +110,11 @@ func Dialog(
 
 			case core_tg_dialog.Complete:
 				store.Delete(chatID)
-				responseHandler.EditMessage(session.MessageID, result.Message, flow.ExitMarkup)
+				markup := flow.ExitMarkup
+				if result.Markup != nil {
+					markup = result.Markup
+				}
+				responseHandler.EditMessage(session.MessageID, result.Message, markup)
 
 			case core_tg_dialog.Abort:
 				store.Delete(chatID)

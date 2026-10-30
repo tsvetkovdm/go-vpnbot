@@ -22,6 +22,9 @@ import (
 	plans_postgres_repository "github.com/tsvetkovdm/go-vpnbot/internal/features/plans/repository/postgres"
 	plans_service "github.com/tsvetkovdm/go-vpnbot/internal/features/plans/service"
 	plans_transport_tg "github.com/tsvetkovdm/go-vpnbot/internal/features/plans/transport/tg"
+	subscriptions_postgres_repository "github.com/tsvetkovdm/go-vpnbot/internal/features/subscriptions/repository/postgres"
+	subscriptions_service "github.com/tsvetkovdm/go-vpnbot/internal/features/subscriptions/service"
+	subscriptions_transport_tg "github.com/tsvetkovdm/go-vpnbot/internal/features/subscriptions/transport/tg"
 	users_postgres_repository "github.com/tsvetkovdm/go-vpnbot/internal/features/users/repository/postgres"
 	users_service "github.com/tsvetkovdm/go-vpnbot/internal/features/users/service"
 	users_transport_tg "github.com/tsvetkovdm/go-vpnbot/internal/features/users/transport/tg"
@@ -64,6 +67,8 @@ func main() {
 	}
 	defer pool.Close()
 
+	dialogStore := core_tg_dialog.NewStore(15 * time.Minute)
+
 	logger.Debug("initializing feature", zap.String("feature", "admins"))
 	adminsRepository := admins_postgres_repository.NewAdminsRepository(pool)
 	adminsService := admins_service.NewAdminsService(adminsRepository)
@@ -83,12 +88,27 @@ func main() {
 	logger.Debug("initializing feature", zap.String("feature", "users"))
 	usersRepository := users_postgres_repository.NewUsersRepository(pool)
 	usersService := users_service.NewUsersService(usersRepository)
-	usersTransportTG := users_transport_tg.NewUsersTGHandler(bot, usersService, adminOnly)
+	usersTransportTG := users_transport_tg.NewUsersTGHandler(
+		bot,
+		usersService,
+		adminOnly,
+		dialogStore,
+		screens,
+	)
+
+	logger.Debug("initializing feature", zap.String("feature", "subscriptions"))
+	subscriptionsRepository := subscriptions_postgres_repository.NewSubscriptionsRepository(pool)
+	subscriptionsService := subscriptions_service.NewSubscriptionsService(subscriptionsRepository)
+	subscriptionsTransportTG := subscriptions_transport_tg.NewSubscriptionsTGHandler(
+		bot,
+		subscriptionsService,
+		adminOnly,
+		dialogStore,
+	)
 
 	logger.Debug("initializing feature", zap.String("feature", "plans"))
 	plansRepository := plans_postgres_repository.NewPlansRepository(pool)
 	plansService := plans_service.NewPlansService(plansRepository)
-	dialogStore := core_tg_dialog.NewStore(15 * time.Minute)
 	plansTransportTG := plans_transport_tg.NewPlansTGHandler(
 		bot,
 		plansService,
@@ -103,9 +123,16 @@ func main() {
 	router.RegisterRoutes(usersTransportTG.Routes()...)
 	router.RegisterRoutes(adminsTransportTG.Routes()...)
 	router.RegisterRoutes(plansTransportTG.Routes()...)
+	router.RegisterRoutes(subscriptionsTransportTG.Routes()...)
 
 	flows := make(map[string]core_tg_dialog.Flow)
+	for _, flow := range usersTransportTG.Flows() {
+		flows[flow.ID] = flow
+	}
 	for _, flow := range plansTransportTG.Flows() {
+		flows[flow.ID] = flow
+	}
+	for _, flow := range subscriptionsTransportTG.Flows() {
 		flows[flow.ID] = flow
 	}
 
@@ -117,6 +144,7 @@ func main() {
 		logger,
 		core_tg_middleware.Panic(bot),
 		core_tg_middleware.Logger(logger),
+		core_tg_middleware.ChatLock(),
 		core_tg_middleware.Trace(),
 		core_tg_middleware.CallbackAnswer(bot),
 		core_tg_middleware.Dialog(bot, dialogStore, flows),

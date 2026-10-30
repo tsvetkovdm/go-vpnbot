@@ -7,11 +7,17 @@ import (
 	domain "github.com/tsvetkovdm/go-vpnbot/internal/core/domains"
 )
 
+const userOverviewColumns = `
+	u.id, u.version, u.telegram_id, u.username, u.first_name, u.email,
+	u.xray_uuid, u.status, u.created_at, u.updated_at,
+	s.id, s.version, s.expires_at, s.anchor_day`
+
 type UserModel struct {
 	ID         int64
 	Version    int64
 	TelegramID int64
 	Username   *string
+	FirstName  string
 	Email      string
 	XrayUUID   uuid.UUID
 	Status     string
@@ -25,10 +31,56 @@ func (m UserModel) toDomain() domain.User {
 		Version:    m.Version,
 		TelegramID: m.TelegramID,
 		Username:   m.Username,
+		FirstName:  m.FirstName,
 		Email:      m.Email,
 		XrayUUID:   m.XrayUUID,
 		Status:     domain.Status(m.Status),
 		CreatedAt:  m.CreatedAt,
 		UpdatedAt:  m.UpdatedAt,
+	}
+}
+
+type UserOverviewModel struct {
+	User         UserModel
+	SubID        *int64
+	SubVersion   *int64
+	SubExpiresAt *time.Time
+	SubAnchorDay *int16
+}
+
+func (m UserOverviewModel) toDomain() domain.UserOverview {
+	overview := domain.UserOverview{
+		User: m.User.toDomain(),
+	}
+
+	if m.SubID != nil {
+		overview.Subscription = &domain.Subscription{
+			ID:        *m.SubID,
+			Version:   *m.SubVersion,
+			UserID:    m.User.ID,
+			ExpiresAt: *m.SubExpiresAt,
+			AnchorDay: int(*m.SubAnchorDay),
+		}
+	}
+
+	return overview
+}
+
+func (m *UserOverviewModel) scanDest() []any {
+	return []any{
+		&m.User.ID,
+		&m.User.Version,
+		&m.User.TelegramID,
+		&m.User.Username,
+		&m.User.FirstName,
+		&m.User.Email,
+		&m.User.XrayUUID,
+		&m.User.Status,
+		&m.User.CreatedAt,
+		&m.User.UpdatedAt,
+		&m.SubID,
+		&m.SubVersion,
+		&m.SubExpiresAt,
+		&m.SubAnchorDay,
 	}
 }

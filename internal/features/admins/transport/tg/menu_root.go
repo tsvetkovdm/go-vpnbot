@@ -19,7 +19,10 @@ func (h *AdminsTGHandler) MenuRoot(
 	text := "Админ меню"
 	markup := tgbotapi.NewInlineKeyboardMarkup(
 		tgbotapi.NewInlineKeyboardRow(
-			tgbotapi.NewInlineKeyboardButtonData("Тарифы", "plans:menu"),
+			tgbotapi.NewInlineKeyboardButtonData("👥 Пользователи", "users:menu"),
+		),
+		tgbotapi.NewInlineKeyboardRow(
+			tgbotapi.NewInlineKeyboardButtonData("📊 Тарифы", "plans:menu"),
 		),
 	)
 

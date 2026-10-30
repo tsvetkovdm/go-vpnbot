@@ -11,7 +11,7 @@ type UsersService struct {
 }
 
 type UsersRepository interface {
-	CreateUser(
+	UpsertUser(
 		ctx context.Context,
 		user domain.User,
 	) (domain.User, error)
@@ -35,6 +35,27 @@ type UsersRepository interface {
 		ctx context.Context,
 		telegramID int64,
 	) error
+
+	ListUserOverviews(
+		ctx context.Context,
+		filter domain.UserFilter,
+		limit, offset int,
+	) ([]domain.UserOverview, int, error)
+
+	GetUserOverview(
+		ctx context.Context,
+		userID int64,
+	) (domain.UserOverview, error)
+
+	GetUserOverviewByTelegramID(
+		ctx context.Context,
+		telegramID int64,
+	) (domain.UserOverview, error)
+
+	GetUserOverviewByUsername(
+		ctx context.Context,
+		username string,
+	) (domain.UserOverview, error)
 }
 
 func NewUsersService(
