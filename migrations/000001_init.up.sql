@@ -27,12 +27,25 @@ CREATE TABLE plans (
     id         BIGSERIAL     PRIMARY KEY,
     version    BIGINT        NOT NULL DEFAULT 1,
     title      VARCHAR(100)  NOT NULL,
+    is_active  BOOL          NOT NULL DEFAULT false,
+    created_at TIMESTAMPTZ   NOT NULL DEFAULT now(),
+    updated_at TIMESTAMPTZ   NOT NULL DEFAULT now()
+);
+
+CREATE TABLE plan_prices (
+    id         BIGSERIAL     PRIMARY KEY,
+    version    BIGINT        NOT NULL DEFAULT 1,
+    plan_id    BIGINT        NOT NULL REFERENCES plans(id) ON DELETE CASCADE,
     duration   INTERVAL      NOT NULL CHECK (duration > interval '0'),
     price      NUMERIC(10,2) NOT NULL CHECK (price >= 0),
     is_active  BOOL          NOT NULL DEFAULT true,
     created_at TIMESTAMPTZ   NOT NULL DEFAULT now(),
     updated_at TIMESTAMPTZ   NOT NULL DEFAULT now()
 );
+
+CREATE UNIQUE INDEX uq_plan_prices_active_duration
+    ON plan_prices (plan_id, duration) 
+    WHERE is_active;
 
 CREATE TABLE subscriptions(
     id                 BIGSERIAL    PRIMARY KEY,
@@ -49,7 +62,7 @@ CREATE TABLE subscriptions(
 CREATE TABLE payments(
     id                   BIGSERIAL      PRIMARY KEY,
     user_id              BIGINT         NOT NULL REFERENCES users(id),
-    plan_id              BIGINT         NOT NULL REFERENCES plans(id),
+    plan_price_id        BIGINT         NOT NULL REFERENCES plan_prices(id),
     plan_title_snapshot  VARCHAR(100)   NOT NULL,
     price_snapshot       NUMERIC(10, 2) NOT NULL CHECK (price_snapshot >= 0),
     duration_snapshot    INTERVAL       NOT NULL CHECK (duration_snapshot > interval '0'),
@@ -72,9 +85,10 @@ CREATE TABLE admin_audit_log (
                     'payment_confirmed', 'payment_rejected',
                     'subscription_extended_manually',
                     'plan_created', 'plan_activated', 'plan_deactivated', 'plan_deleted',
+                    'plan_price_added', 'plan_price_activated', 'plan_price_deactivated', 'plan_price_deleted',
                     'admin_added', 'admin_removed'
                 )),
-    target_type VARCHAR(20) NOT NULL CHECK (target_type IN ('user', 'payment', 'subscription', 'plan', 'admin')),
+    target_type VARCHAR(20) NOT NULL CHECK (target_type IN ('user', 'payment', 'subscription', 'plan', 'plan_price', 'admin')),
     target_id   BIGINT      NOT NULL,
     comment     TEXT,
     created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
