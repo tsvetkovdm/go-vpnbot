@@ -17,20 +17,21 @@ func (h *PlansTGHandler) MenuViewPlan(
 
 	log.Debug("invoke MenuViewPlan handler")
 
-	data := update.CallbackQuery.Data
-	planID, filter, page, err := parseCallbackData(data)
+	messageID := update.CallbackQuery.Message.MessageID
+
+	planID, filter, page, err := parseCallbackData(update.CallbackQuery.Data)
 	if err != nil {
-		responseHandler.ErrorResponse(err, "failed to parse callback data")
+		markup := plansMenuMarkup()
+		responseHandler.EditErrorResponse(messageID, err, "failed to parse callback data", &markup)
 		return
 	}
 
-	plan, err := h.plansService.GetPlanByID(ctx, planID)
+	text, markup, err := h.loadPlanCard(ctx, planID, filter, page)
 	if err != nil {
-		responseHandler.ErrorResponse(err, "failed to get plan by ID")
+		backMarkup := tgbotapi.NewInlineKeyboardMarkup(tgbotapi.NewInlineKeyboardRow(backToListButton(filter, page)))
+		responseHandler.EditErrorResponse(messageID, err, "failed to load plan card", &backMarkup)
 		return
 	}
-
-	text, markup := assemblePlanCard(plan, filter, page)
 
 	responseHandler.EditResponse(text, &markup)
 }

@@ -14,19 +14,17 @@ func (r *PlansRepository) ListPlans(
 	ctx, cancel := context.WithTimeout(ctx, r.pool.OpTimeout())
 	defer cancel()
 
+	where := "is_active = true"
+	if includeInactive {
+		where = "TRUE"
+	}
+
 	query := `
-	SELECT id, version, title, duration, price, is_active, created_at, updated_at
+	SELECT ` + planColumns + `
 	FROM vpnbot.plans
-	WHERE is_active = true
+	WHERE ` + where + `
 	ORDER BY id ASC;
 	`
-	if includeInactive {
-		query = `
-		SELECT id, version, title, duration, price, is_active, created_at, updated_at
-		FROM vpnbot.plans
-		ORDER BY id ASC;
-		`
-	}
 
 	rows, err := r.pool.Query(ctx, query)
 	if err != nil {
@@ -36,23 +34,12 @@ func (r *PlansRepository) ListPlans(
 
 	var plans []domain.Plan
 	for rows.Next() {
-		var planModel PlanModel
-
-		err := rows.Scan(
-			&planModel.ID,
-			&planModel.Version,
-			&planModel.Title,
-			&planModel.Duration,
-			&planModel.Price,
-			&planModel.IsActive,
-			&planModel.CreatedAt,
-			&planModel.UpdatedAt,
-		)
+		m, err := scanPlan(rows)
 		if err != nil {
 			return nil, fmt.Errorf("scan error: %w", err)
 		}
 
-		plans = append(plans, planModel.toDomain())
+		plans = append(plans, m.toDomain())
 	}
 
 	if err := rows.Err(); err != nil {

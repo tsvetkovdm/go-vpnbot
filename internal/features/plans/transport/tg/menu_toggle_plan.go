@@ -6,7 +6,6 @@ import (
 	"fmt"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
-	domain "github.com/tsvetkovdm/go-vpnbot/internal/core/domains"
 	core_errors "github.com/tsvetkovdm/go-vpnbot/internal/core/errors"
 	core_logger "github.com/tsvetkovdm/go-vpnbot/internal/core/logger"
 	core_tg_callback "github.com/tsvetkovdm/go-vpnbot/internal/core/transport/tg/callback"
@@ -27,14 +26,7 @@ func (h *PlansTGHandler) MenuTogglePlan(
 
 	planID, filter, page, err := parseCallbackData(data)
 	if err != nil {
-		markup := tgbotapi.NewInlineKeyboardMarkup(
-			tgbotapi.NewInlineKeyboardRow(
-				tgbotapi.NewInlineKeyboardButtonData(
-					"Назад",
-					core_tg_callback.Build("plans", "menu"),
-				),
-			),
-		)
+		markup := plansMenuMarkup()
 		responseHandler.EditErrorResponse(messageID, err, "failed to parse callback data", &markup)
 		return
 	}
@@ -43,24 +35,26 @@ func (h *PlansTGHandler) MenuTogglePlan(
 		tgbotapi.NewInlineKeyboardRow(backToListButton(filter, page)),
 	)
 
-	var plan domain.Plan
 	switch action := core_tg_callback.Segments(data)[1]; action {
 	case "activate":
-		plan, err = h.plansService.ActivatePlan(ctx, planID)
+		_, err = h.plansService.ActivatePlan(ctx, planID)
 	case "deactivate":
-		plan, err = h.plansService.DeactivatePlan(ctx, planID)
+		_, err = h.plansService.DeactivatePlan(ctx, planID)
 	default:
 		err = fmt.Errorf("unknown plan action %q", action)
 	}
 
-	if errors.Is(err, core_errors.ErrConflict) {
-		plan, err = h.plansService.GetPlanByID(ctx, planID)
-	}
-	if err != nil {
+	// ErrConflict = тариф уже в нужном состоянии (повторное нажатие) — просто показываем карточку
+	if err != nil && !errors.Is(err, core_errors.ErrConflict) {
 		responseHandler.EditErrorResponse(messageID, err, "failed to toggle plan", &backMarkup)
 		return
 	}
 
-	text, markup := assemblePlanCard(plan, filter, page)
+	text, markup, err := h.loadPlanCard(ctx, planID, filter, page)
+	if err != nil {
+		responseHandler.EditErrorResponse(messageID, err, "failed to load plan card", &backMarkup)
+		return
+	}
+
 	responseHandler.EditResponse(text, &markup)
 }

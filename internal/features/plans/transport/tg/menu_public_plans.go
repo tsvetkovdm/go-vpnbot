@@ -40,12 +40,7 @@ func (h *PlansTGHandler) MenuPublicPlans(
 	var sb strings.Builder
 	sb.WriteString("💳 Тарифы\n\n")
 	for _, plan := range plans {
-		sb.WriteString(fmt.Sprintf(
-			"• %s — %s — %s\n",
-			plan.Title,
-			formatDuration(plan),
-			formatPriceForUser(plan.Price),
-		))
+		sb.WriteString(fmt.Sprintf("• %s\n", plan.Title))
 	}
 	sb.WriteString("\nДля оплаты напишите администратору.")
 

@@ -24,11 +24,11 @@ func (h *PlansTGHandler) GetPlan(
 		return
 	}
 
-	plan, err := h.plansService.GetPlanByID(ctx, planID)
+	text, _, err := h.loadPlanCard(ctx, planID, "all", "0")
 	if err != nil {
-		responseHandler.ErrorResponse(err, "failed to get plan")
+		responseHandler.ErrorResponse(err, "failed to load plan card")
 		return
 	}
 
-	responseHandler.TextResponse(formatPlanInfo(plan))
+	responseHandler.TextResponse(text)
 }

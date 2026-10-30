@@ -84,7 +84,7 @@ func (h *PlansTGHandler) MenuListPlans(
 	var rows [][]tgbotapi.InlineKeyboardButton
 
 	for _, plan := range pagePlans {
-		text := fmt.Sprintf("%s - %v", plan.Title, plan.Price)
+		text := activeIcon(plan.IsActive) + " " + plan.Title
 		callbackData := core_tg_callback.Build("plans", "view", strconv.FormatInt(plan.ID, 10), segments[2], strconv.Itoa(pageNumber))
 		rows = append(rows, tgbotapi.NewInlineKeyboardRow(
 			tgbotapi.NewInlineKeyboardButtonData(text, callbackData),

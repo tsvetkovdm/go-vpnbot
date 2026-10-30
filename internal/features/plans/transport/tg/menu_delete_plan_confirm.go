@@ -8,7 +8,6 @@ import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	core_errors "github.com/tsvetkovdm/go-vpnbot/internal/core/errors"
 	core_logger "github.com/tsvetkovdm/go-vpnbot/internal/core/logger"
-	core_tg_callback "github.com/tsvetkovdm/go-vpnbot/internal/core/transport/tg/callback"
 	core_tg_response "github.com/tsvetkovdm/go-vpnbot/internal/core/transport/tg/response"
 	"go.uber.org/zap"
 )
@@ -26,11 +25,7 @@ func (h *PlansTGHandler) MenuDeletePlanConfirm(
 
 	planID, filter, page, err := parseCallbackData(update.CallbackQuery.Data)
 	if err != nil {
-		markup := tgbotapi.NewInlineKeyboardMarkup(
-			tgbotapi.NewInlineKeyboardRow(
-				tgbotapi.NewInlineKeyboardButtonData("Назад", core_tg_callback.Build("plans", "menu")),
-			),
-		)
+		markup := plansMenuMarkup()
 		responseHandler.EditErrorResponse(messageID, err, "failed to parse callback data", &markup)
 		return
 	}

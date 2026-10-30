@@ -24,11 +24,7 @@ func (h *PlansTGHandler) MenuDeletePlanAsk(
 
 	planID, filter, page, err := parseCallbackData(update.CallbackQuery.Data)
 	if err != nil {
-		markup := tgbotapi.NewInlineKeyboardMarkup(
-			tgbotapi.NewInlineKeyboardRow(
-				tgbotapi.NewInlineKeyboardButtonData("Назад", core_tg_callback.Build("plans", "menu")),
-			),
-		)
+		markup := plansMenuMarkup()
 		responseHandler.EditErrorResponse(messageID, err, "failed to parse callback data", &markup)
 		return
 	}

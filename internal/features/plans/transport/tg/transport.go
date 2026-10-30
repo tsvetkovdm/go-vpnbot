@@ -36,6 +36,11 @@ type PlansService interface {
 		includeInactive bool,
 	) ([]domain.Plan, error)
 
+	ListPlanPrices(
+		ctx context.Context,
+		planID int64,
+	) ([]domain.PlanPrice, error)
+
 	ActivatePlan(
 		ctx context.Context,
 		planID int64,
