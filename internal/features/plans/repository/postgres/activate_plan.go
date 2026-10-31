@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"time"
 
 	domain "github.com/tsvetkovdm/go-vpnbot/internal/core/domains"
 	core_errors "github.com/tsvetkovdm/go-vpnbot/internal/core/errors"
@@ -20,24 +19,14 @@ func (r *PlansRepository) ActivatePlan(
 
 	query := `
 	UPDATE vpnbot.plans
-	SET is_active = true, updated_at = $2, version = version + 1
+	SET is_active = true, updated_at = now(), version = version + 1
 	WHERE id = $1 AND is_active = false
-	RETURNING id, version, title, duration, price, is_active, created_at, updated_at;
+	RETURNING ` + planColumns + `;
 	`
 
-	row := r.pool.QueryRow(ctx, query, planID, time.Now())
+	row := r.pool.QueryRow(ctx, query, planID)
 
-	var planModel PlanModel
-	err := row.Scan(
-		&planModel.ID,
-		&planModel.Version,
-		&planModel.Title,
-		&planModel.Duration,
-		&planModel.Price,
-		&planModel.IsActive,
-		&planModel.CreatedAt,
-		&planModel.UpdatedAt,
-	)
+	m, err := scanPlan(row)
 	if err != nil {
 		if errors.Is(err, core_postgres_pool.ErrNoRows) {
 			if _, getErr := r.GetPlanByID(ctx, planID); getErr != nil {
@@ -52,5 +41,5 @@ func (r *PlansRepository) ActivatePlan(
 		return domain.Plan{}, fmt.Errorf("scan error: %w", err)
 	}
 
-	return planModel.toDomain(), nil
+	return m.toDomain(), nil
 }

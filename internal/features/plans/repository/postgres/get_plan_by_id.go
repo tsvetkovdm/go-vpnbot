@@ -18,24 +18,14 @@ func (r *PlansRepository) GetPlanByID(
 	defer cancel()
 
 	query := `
-	SELECT id, version, title, duration, price, is_active, created_at, updated_at
+	SELECT ` + planColumns + `
 	FROM vpnbot.plans
 	WHERE id = $1;
 	`
 
 	row := r.pool.QueryRow(ctx, query, planID)
 
-	var planModel PlanModel
-	err := row.Scan(
-		&planModel.ID,
-		&planModel.Version,
-		&planModel.Title,
-		&planModel.Duration,
-		&planModel.Price,
-		&planModel.IsActive,
-		&planModel.CreatedAt,
-		&planModel.UpdatedAt,
-	)
+	m, err := scanPlan(row)
 	if err != nil {
 		if errors.Is(err, core_postgres_pool.ErrNoRows) {
 			return domain.Plan{}, fmt.Errorf(
@@ -48,5 +38,5 @@ func (r *PlansRepository) GetPlanByID(
 		return domain.Plan{}, fmt.Errorf("scan error: %w", err)
 	}
 
-	return planModel.toDomain(), nil
+	return m.toDomain(), nil
 }

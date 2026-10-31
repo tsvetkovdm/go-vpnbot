@@ -7,23 +7,13 @@ import (
 )
 
 const (
-	StepAwaitTitle         core_tg_dialog.StepID = "create_plan.await_title"
-	StepAwaitDurationUnit  core_tg_dialog.StepID = "create_plan.await_duration_unit"
-	StepAwaitDurationValue core_tg_dialog.StepID = "create_plan.await_duration_value"
-	StepAwaitPrice         core_tg_dialog.StepID = "create_plan.await_price"
-)
-
-const (
-	dataKeyTitle          string = "title"
-	dataKeyDurationUnit   string = "duration_unit"
-	dataKeyDurationMonths string = "duration_month"
-	dataKeyDurationDays   string = "duration_days"
+	StepAwaitTitle core_tg_dialog.StepID = "create_plan.await_title"
 )
 
 func newCreatePlanFlow(plansService PlansService) core_tg_dialog.Flow {
 	exitMarkup := tgbotapi.NewInlineKeyboardMarkup(
 		tgbotapi.NewInlineKeyboardRow(
-			tgbotapi.NewInlineKeyboardButtonData("К тарифам", core_tg_callback.Build("plans", "menu")),
+			tgbotapi.NewInlineKeyboardButtonData("⬅️ К тарифам", core_tg_callback.Build("plans", "menu")),
 		),
 	)
 
@@ -32,9 +22,6 @@ func newCreatePlanFlow(plansService PlansService) core_tg_dialog.Flow {
 		StepAwaitTitle,
 		"Создание тарифа отменено.",
 		&exitMarkup,
-		stepAwaitTitle(),
-		stepAwaitDurationUnit(),
-		stepAwaitDurationValue(),
-		stepAwaitPrice(plansService),
+		stepAwaitTitle(plansService),
 	)
 }

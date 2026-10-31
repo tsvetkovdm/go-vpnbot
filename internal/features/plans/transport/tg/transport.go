@@ -17,6 +17,7 @@ type PlansTGHandler struct {
 	adminOnly      core_tg_middleware.Middleware
 	dialogStore    *core_tg_dialog.Store
 	createPlanFlow core_tg_dialog.Flow
+	addPriceFlow   core_tg_dialog.Flow
 	screens        *core_tg_screen.Screens
 }
 
@@ -26,14 +27,33 @@ type PlansService interface {
 		plan domain.Plan,
 	) (domain.Plan, error)
 
+	CreatePlanPrice(
+		ctx context.Context,
+		price domain.PlanPrice,
+	) (domain.PlanPrice, error)
+
 	GetPlanByID(
 		ctx context.Context,
 		planID int64,
 	) (domain.Plan, error)
 
+	GetPlanPriceByID(
+		ctx context.Context,
+		priceID int64,
+	) (domain.PlanPrice, error)
+
 	ListPlans(
 		ctx context.Context,
 		includeInactive bool,
+	) ([]domain.Plan, error)
+
+	ListPlanPrices(
+		ctx context.Context,
+		planID int64,
+	) ([]domain.PlanPrice, error)
+
+	ListPublicPlans(
+		ctx context.Context,
 	) ([]domain.Plan, error)
 
 	ActivatePlan(
@@ -41,14 +61,29 @@ type PlansService interface {
 		planID int64,
 	) (domain.Plan, error)
 
+	ActivatePlanPrice(
+		ctx context.Context,
+		priceID int64,
+	) (domain.PlanPrice, error)
+
 	DeactivatePlan(
 		ctx context.Context,
 		planID int64,
 	) (domain.Plan, error)
 
+	DeactivatePlanPrice(
+		ctx context.Context,
+		priceID int64,
+	) (domain.PlanPrice, error)
+
 	DeletePlan(
 		ctx context.Context,
 		planID int64,
+	) error
+
+	DeletePlanPrice(
+		ctx context.Context,
+		priceID int64,
 	) error
 }
 
@@ -65,6 +100,7 @@ func NewPlansTGHandler(
 		adminOnly:      adminOnly,
 		dialogStore:    dialogStore,
 		createPlanFlow: newCreatePlanFlow(plansService),
+		addPriceFlow:   newAddPriceFlow(plansService),
 		screens:        screens,
 	}
 }
@@ -120,6 +156,12 @@ func (h *PlansTGHandler) Routes() []core_tg_poller.Route {
 			h.adminOnly,
 		),
 		core_tg_poller.NewRoute(
+			"plans:addprice:",
+			core_tg_poller.TriggerCallbackPrefix,
+			h.MenuAddPrice,
+			h.adminOnly,
+		),
+		core_tg_poller.NewRoute(
 			"plans:list:menu",
 			core_tg_poller.TriggerCallbackPrefix,
 			h.MenuListChoice,
@@ -144,6 +186,12 @@ func (h *PlansTGHandler) Routes() []core_tg_poller.Route {
 			h.adminOnly,
 		),
 		core_tg_poller.NewRoute(
+			"plans:pview:",
+			core_tg_poller.TriggerCallbackPrefix,
+			h.MenuViewPrice,
+			h.adminOnly,
+		),
+		core_tg_poller.NewRoute(
 			"plans:activate:",
 			core_tg_poller.TriggerCallbackPrefix,
 			h.MenuTogglePlan,
@@ -153,6 +201,18 @@ func (h *PlansTGHandler) Routes() []core_tg_poller.Route {
 			"plans:deactivate:",
 			core_tg_poller.TriggerCallbackPrefix,
 			h.MenuTogglePlan,
+			h.adminOnly,
+		),
+		core_tg_poller.NewRoute(
+			"plans:pactivate:",
+			core_tg_poller.TriggerCallbackPrefix,
+			h.MenuTogglePrice,
+			h.adminOnly,
+		),
+		core_tg_poller.NewRoute(
+			"plans:pdeactivate:",
+			core_tg_poller.TriggerCallbackPrefix,
+			h.MenuTogglePrice,
 			h.adminOnly,
 		),
 		core_tg_poller.NewRoute(
@@ -168,13 +228,35 @@ func (h *PlansTGHandler) Routes() []core_tg_poller.Route {
 			h.adminOnly,
 		),
 		core_tg_poller.NewRoute(
+			"plans:pdelete:",
+			core_tg_poller.TriggerCallbackPrefix,
+			h.MenuDeletePriceAsk,
+			h.adminOnly,
+		),
+		core_tg_poller.NewRoute(
+			"plans:pconfirm_delete:",
+			core_tg_poller.TriggerCallbackPrefix,
+			h.MenuDeletePriceConfirm,
+			h.adminOnly,
+		),
+		core_tg_poller.NewRoute(
 			"plans:public",
 			core_tg_poller.TriggerCallbackPrefix,
 			h.MenuPublicPlans,
+		),
+		core_tg_poller.NewRoute(
+			"plans:offer:",
+			core_tg_poller.TriggerCallbackPrefix,
+			h.MenuPublicOffer,
+		),
+		core_tg_poller.NewRoute(
+			"plans:buy:",
+			core_tg_poller.TriggerCallbackPrefix,
+			h.MenuPublicBuy,
 		),
 	}
 }
 
 func (h *PlansTGHandler) Flows() []core_tg_dialog.Flow {
-	return []core_tg_dialog.Flow{h.createPlanFlow}
+	return []core_tg_dialog.Flow{h.createPlanFlow, h.addPriceFlow}
 }

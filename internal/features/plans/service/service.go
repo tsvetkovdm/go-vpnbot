@@ -16,14 +16,33 @@ type PlansRepository interface {
 		plan domain.Plan,
 	) (domain.Plan, error)
 
+	CreatePlanPrice(
+		ctx context.Context,
+		price domain.PlanPrice,
+	) (domain.PlanPrice, error)
+
 	GetPlanByID(
 		ctx context.Context,
 		planID int64,
 	) (domain.Plan, error)
 
+	GetPlanPriceByID(
+		ctx context.Context,
+		priceID int64,
+	) (domain.PlanPrice, error)
+
 	ListPlans(
 		ctx context.Context,
 		includeInactive bool,
+	) ([]domain.Plan, error)
+
+	ListPlanPrices(
+		ctx context.Context,
+		planID int64,
+	) ([]domain.PlanPrice, error)
+
+	ListPublicPlans(
+		ctx context.Context,
 	) ([]domain.Plan, error)
 
 	ActivatePlan(
@@ -31,14 +50,29 @@ type PlansRepository interface {
 		planID int64,
 	) (domain.Plan, error)
 
+	ActivatePlanPrice(
+		ctx context.Context,
+		priceID int64,
+	) (domain.PlanPrice, error)
+
 	DeactivatePlan(
 		ctx context.Context,
 		planID int64,
 	) (domain.Plan, error)
 
+	DeactivatePlanPrice(
+		ctx context.Context,
+		priceID int64,
+	) (domain.PlanPrice, error)
+
 	DeletePlan(
 		ctx context.Context,
 		planID int64,
+	) error
+
+	DeletePlanPrice(
+		ctx context.Context,
+		priceID int64,
 	) error
 }
 
