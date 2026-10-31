@@ -11,18 +11,19 @@ import (
 	core_tg_callback "github.com/tsvetkovdm/go-vpnbot/internal/core/transport/tg/callback"
 )
 
-func (h *PlansTGHandler) loadPlanCard(
+func loadPlanCard(
 	ctx context.Context,
+	plansService PlansService,
 	planID int64,
 	filter string,
 	page string,
 ) (string, tgbotapi.InlineKeyboardMarkup, error) {
-	plan, err := h.plansService.GetPlanByID(ctx, planID)
+	plan, err := plansService.GetPlanByID(ctx, planID)
 	if err != nil {
 		return "", tgbotapi.InlineKeyboardMarkup{}, fmt.Errorf("get plan: %w", err)
 	}
 
-	prices, err := h.plansService.ListPlanPrices(ctx, planID)
+	prices, err := plansService.ListPlanPrices(ctx, planID)
 	if err != nil {
 		return "", tgbotapi.InlineKeyboardMarkup{}, fmt.Errorf("list plan prices: %w", err)
 	}

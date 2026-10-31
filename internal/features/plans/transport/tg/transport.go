@@ -17,6 +17,7 @@ type PlansTGHandler struct {
 	adminOnly      core_tg_middleware.Middleware
 	dialogStore    *core_tg_dialog.Store
 	createPlanFlow core_tg_dialog.Flow
+	addPriceFlow   core_tg_dialog.Flow
 	screens        *core_tg_screen.Screens
 }
 
@@ -25,6 +26,11 @@ type PlansService interface {
 		ctx context.Context,
 		plan domain.Plan,
 	) (domain.Plan, error)
+
+	CreatePlanPrice(
+		ctx context.Context,
+		price domain.PlanPrice,
+	) (domain.PlanPrice, error)
 
 	GetPlanByID(
 		ctx context.Context,
@@ -70,6 +76,7 @@ func NewPlansTGHandler(
 		adminOnly:      adminOnly,
 		dialogStore:    dialogStore,
 		createPlanFlow: newCreatePlanFlow(plansService),
+		addPriceFlow:   newAddPriceFlow(plansService),
 		screens:        screens,
 	}
 }
@@ -122,6 +129,12 @@ func (h *PlansTGHandler) Routes() []core_tg_poller.Route {
 			"plans:create",
 			core_tg_poller.TriggerCallbackPrefix,
 			h.MenuCreatePlan,
+			h.adminOnly,
+		),
+		core_tg_poller.NewRoute(
+			"plans:addprice:",
+			core_tg_poller.TriggerCallbackPrefix,
+			h.MenuAddPrice,
 			h.adminOnly,
 		),
 		core_tg_poller.NewRoute(
@@ -181,5 +194,5 @@ func (h *PlansTGHandler) Routes() []core_tg_poller.Route {
 }
 
 func (h *PlansTGHandler) Flows() []core_tg_dialog.Flow {
-	return []core_tg_dialog.Flow{h.createPlanFlow}
+	return []core_tg_dialog.Flow{h.createPlanFlow, h.addPriceFlow}
 }

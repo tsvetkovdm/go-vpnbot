@@ -16,6 +16,11 @@ type PlansRepository interface {
 		plan domain.Plan,
 	) (domain.Plan, error)
 
+	CreatePlanPrice(
+		ctx context.Context,
+		price domain.PlanPrice,
+	) (domain.PlanPrice, error)
+
 	GetPlanByID(
 		ctx context.Context,
 		planID int64,

@@ -24,7 +24,7 @@ func (h *PlansTGHandler) GetPlan(
 		return
 	}
 
-	text, _, err := h.loadPlanCard(ctx, planID, "all", "0")
+	text, _, err := loadPlanCard(ctx, h.plansService, planID, "all", "0")
 	if err != nil {
 		responseHandler.ErrorResponse(err, "failed to load plan card")
 		return

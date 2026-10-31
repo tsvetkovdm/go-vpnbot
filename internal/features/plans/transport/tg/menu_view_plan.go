@@ -26,7 +26,7 @@ func (h *PlansTGHandler) MenuViewPlan(
 		return
 	}
 
-	text, markup, err := h.loadPlanCard(ctx, planID, filter, page)
+	text, markup, err := loadPlanCard(ctx, h.plansService, planID, filter, page)
 	if err != nil {
 		backMarkup := tgbotapi.NewInlineKeyboardMarkup(tgbotapi.NewInlineKeyboardRow(backToListButton(filter, page)))
 		responseHandler.EditErrorResponse(messageID, err, "failed to load plan card", &backMarkup)

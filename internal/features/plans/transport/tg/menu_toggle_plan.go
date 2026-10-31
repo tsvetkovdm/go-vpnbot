@@ -50,7 +50,7 @@ func (h *PlansTGHandler) MenuTogglePlan(
 		return
 	}
 
-	text, markup, err := h.loadPlanCard(ctx, planID, filter, page)
+	text, markup, err := loadPlanCard(ctx, h.plansService, planID, filter, page)
 	if err != nil {
 		responseHandler.EditErrorResponse(messageID, err, "failed to load plan card", &backMarkup)
 		return
