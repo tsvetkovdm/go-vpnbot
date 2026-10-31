@@ -37,10 +37,10 @@ func (r *PlansRepository) CreatePlanPrice(
 		switch {
 		case errors.Is(err, core_postgres_pool.ErrUniqueViolation):
 			return domain.PlanPrice{}, fmt.Errorf(
-				"active price with duration %+v already exists in plan id=%d: %w",
-				price.Duration,
+				"plan id=%d duration %+v: %w",
 				price.PlanID,
-				core_errors.ErrConflict,
+				price.Duration,
+				domain.ErrPlanPriceDuplicateDuration,
 			)
 		case errors.Is(err, core_postgres_pool.ErrViolatesForeignKey):
 			return domain.PlanPrice{}, fmt.Errorf(

@@ -57,10 +57,20 @@ type PlansService interface {
 		planID int64,
 	) (domain.Plan, error)
 
+	ActivatePlanPrice(
+		ctx context.Context,
+		priceID int64,
+	) (domain.PlanPrice, error)
+
 	DeactivatePlan(
 		ctx context.Context,
 		planID int64,
 	) (domain.Plan, error)
+
+	DeactivatePlanPrice(
+		ctx context.Context,
+		priceID int64,
+	) (domain.PlanPrice, error)
 
 	DeletePlan(
 		ctx context.Context,
@@ -182,6 +192,18 @@ func (h *PlansTGHandler) Routes() []core_tg_poller.Route {
 			"plans:deactivate:",
 			core_tg_poller.TriggerCallbackPrefix,
 			h.MenuTogglePlan,
+			h.adminOnly,
+		),
+		core_tg_poller.NewRoute(
+			"plans:pactivate:",
+			core_tg_poller.TriggerCallbackPrefix,
+			h.MenuTogglePrice,
+			h.adminOnly,
+		),
+		core_tg_poller.NewRoute(
+			"plans:pdeactivate:",
+			core_tg_poller.TriggerCallbackPrefix,
+			h.MenuTogglePrice,
 			h.adminOnly,
 		),
 		core_tg_poller.NewRoute(

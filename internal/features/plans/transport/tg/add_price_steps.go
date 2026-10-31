@@ -143,7 +143,7 @@ func stepAwaitPrice(plansService PlansService) core_tg_dialog.Step {
 
 			_, err = plansService.CreatePlanPrice(ctx, priceDomain)
 			switch {
-			case errors.Is(err, core_errors.ErrConflict):
+			case errors.Is(err, domain.ErrPlanPriceDuplicateDuration):
 				core_logger.FromContext(ctx).Info("active plan price with same duration exists", zap.Error(err))
 				return completeWithPlanCard(ctx, plansService, target,
 					"⚠️ В тарифе уже есть активный срок такой же длительности "+

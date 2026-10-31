@@ -46,10 +46,20 @@ type PlansRepository interface {
 		planID int64,
 	) (domain.Plan, error)
 
+	ActivatePlanPrice(
+		ctx context.Context,
+		priceID int64,
+	) (domain.PlanPrice, error)
+
 	DeactivatePlan(
 		ctx context.Context,
 		planID int64,
 	) (domain.Plan, error)
+
+	DeactivatePlanPrice(
+		ctx context.Context,
+		priceID int64,
+	) (domain.PlanPrice, error)
 
 	DeletePlan(
 		ctx context.Context,

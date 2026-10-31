@@ -16,11 +16,12 @@ const (
 var PlanMaxPrice = decimal.NewFromInt(1_000_000)
 
 var (
-	ErrPlanDurationInvalid = fmt.Errorf("plan duration must be positive months or days, not both: %w", core_errors.ErrInvalidArgument)
-	ErrPlanDurationTooLong = fmt.Errorf("plan duration too long: %w", core_errors.ErrInvalidArgument)
-	ErrPlanPriceNegative   = fmt.Errorf("plan price is negative: %w", core_errors.ErrInvalidArgument)
-	ErrPlanPriceTooHigh    = fmt.Errorf("plan price too high: %w", core_errors.ErrInvalidArgument)
-	ErrPlanPricePrecision  = fmt.Errorf("plan price precision is invalid: %w", core_errors.ErrInvalidArgument)
+	ErrPlanDurationInvalid        = fmt.Errorf("plan duration must be positive months or days, not both: %w", core_errors.ErrInvalidArgument)
+	ErrPlanDurationTooLong        = fmt.Errorf("plan duration too long: %w", core_errors.ErrInvalidArgument)
+	ErrPlanPriceNegative          = fmt.Errorf("plan price is negative: %w", core_errors.ErrInvalidArgument)
+	ErrPlanPriceTooHigh           = fmt.Errorf("plan price too high: %w", core_errors.ErrInvalidArgument)
+	ErrPlanPricePrecision         = fmt.Errorf("plan price precision is invalid: %w", core_errors.ErrInvalidArgument)
+	ErrPlanPriceDuplicateDuration = fmt.Errorf("active plan price with same duration exists: %w", core_errors.ErrConflict)
 )
 
 type PlanPrice struct {
