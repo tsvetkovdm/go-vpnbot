@@ -52,6 +52,10 @@ type PlansService interface {
 		planID int64,
 	) ([]domain.PlanPrice, error)
 
+	ListPublicPlans(
+		ctx context.Context,
+	) ([]domain.Plan, error)
+
 	ActivatePlan(
 		ctx context.Context,
 		planID int64,
@@ -239,6 +243,11 @@ func (h *PlansTGHandler) Routes() []core_tg_poller.Route {
 			"plans:public",
 			core_tg_poller.TriggerCallbackPrefix,
 			h.MenuPublicPlans,
+		),
+		core_tg_poller.NewRoute(
+			"plans:offer:",
+			core_tg_poller.TriggerCallbackPrefix,
+			h.MenuPublicOffer,
 		),
 	}
 }

@@ -41,6 +41,10 @@ type PlansRepository interface {
 		planID int64,
 	) ([]domain.PlanPrice, error)
 
+	ListPublicPlans(
+		ctx context.Context,
+	) ([]domain.Plan, error)
+
 	ActivatePlan(
 		ctx context.Context,
 		planID int64,

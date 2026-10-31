@@ -52,11 +52,10 @@ func formatPriceAmount(p domain.PlanPrice) string {
 	return fmt.Sprintf("%s (%s/мес)", amount, formatPriceForUser(perMonth))
 }
 
+func formatPriceLabel(p domain.PlanPrice) string {
+	return formatPriceDuration(p.Duration) + " — " + formatPriceAmount(p)
+}
+
 func formatPriceLine(p domain.PlanPrice) string {
-	return fmt.Sprintf(
-		"%s %s — %s",
-		activeIcon(p.IsActive),
-		formatPriceDuration(p.Duration),
-		formatPriceAmount(p),
-	)
+	return activeIcon(p.IsActive) + " " + formatPriceLabel(p)
 }
