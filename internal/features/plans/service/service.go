@@ -26,6 +26,11 @@ type PlansRepository interface {
 		planID int64,
 	) (domain.Plan, error)
 
+	GetPlanPriceByID(
+		ctx context.Context,
+		priceID int64,
+	) (domain.PlanPrice, error)
+
 	ListPlans(
 		ctx context.Context,
 		includeInactive bool,

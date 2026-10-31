@@ -37,6 +37,11 @@ type PlansService interface {
 		planID int64,
 	) (domain.Plan, error)
 
+	GetPlanPriceByID(
+		ctx context.Context,
+		priceID int64,
+	) (domain.PlanPrice, error)
+
 	ListPlans(
 		ctx context.Context,
 		includeInactive bool,
@@ -159,6 +164,12 @@ func (h *PlansTGHandler) Routes() []core_tg_poller.Route {
 			"plans:view:",
 			core_tg_poller.TriggerCallbackPrefix,
 			h.MenuViewPlan,
+			h.adminOnly,
+		),
+		core_tg_poller.NewRoute(
+			"plans:pview:",
+			core_tg_poller.TriggerCallbackPrefix,
+			h.MenuViewPrice,
 			h.adminOnly,
 		),
 		core_tg_poller.NewRoute(
