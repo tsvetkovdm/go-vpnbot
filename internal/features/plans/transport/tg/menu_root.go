@@ -19,15 +19,15 @@ func (h *PlansTGHandler) MenuRoot(
 
 	markup := tgbotapi.NewInlineKeyboardMarkup(
 		tgbotapi.NewInlineKeyboardRow(
-			tgbotapi.NewInlineKeyboardButtonData("Создать тариф", "plans:create"),
+			tgbotapi.NewInlineKeyboardButtonData("➕ Создать тариф", "plans:create"),
 		),
 		tgbotapi.NewInlineKeyboardRow(
-			tgbotapi.NewInlineKeyboardButtonData("Посмотреть тарифы", "plans:list:menu"),
+			tgbotapi.NewInlineKeyboardButtonData("📋 Посмотреть тарифы", "plans:list:menu"),
 		),
 		tgbotapi.NewInlineKeyboardRow(
-			tgbotapi.NewInlineKeyboardButtonData("Назад", "admins:menu"),
+			tgbotapi.NewInlineKeyboardButtonData("⬅️ Назад", "admins:menu"),
 		),
 	)
 
-	responseHandler.EditResponse("Тарифы", &markup)
+	responseHandler.EditResponse("📊 Тарифы", &markup)
 }

@@ -19,15 +19,15 @@ func (h *PlansTGHandler) MenuListChoice(
 
 	markup := tgbotapi.NewInlineKeyboardMarkup(
 		tgbotapi.NewInlineKeyboardRow(
-			tgbotapi.NewInlineKeyboardButtonData("Активные", "plans:list:active:0"),
+			tgbotapi.NewInlineKeyboardButtonData("🟢 Активные", "plans:list:active:0"),
 		),
 		tgbotapi.NewInlineKeyboardRow(
-			tgbotapi.NewInlineKeyboardButtonData("Все", "plans:list:all:0"),
+			tgbotapi.NewInlineKeyboardButtonData("📋 Все", "plans:list:all:0"),
 		),
 		tgbotapi.NewInlineKeyboardRow(
-			tgbotapi.NewInlineKeyboardButtonData("Назад", "plans:menu"),
+			tgbotapi.NewInlineKeyboardButtonData("⬅️ Назад", "plans:menu"),
 		),
 	)
 
-	responseHandler.EditResponse("Посмотреть тарифы", &markup)
+	responseHandler.EditResponse("📊 Тарифы — список", &markup)
 }

@@ -25,12 +25,17 @@ func (h *PlansTGHandler) MenuListPlans(
 
 	log.Debug("invoke MenuListPlans handler")
 
+	messageID := update.CallbackQuery.Message.MessageID
+	menuMarkup := plansMenuMarkup()
+
 	data := update.CallbackQuery.Data
 	segments := core_tg_callback.Segments(data)
 	if len(segments) != 4 {
-		responseHandler.ErrorResponse(
+		responseHandler.EditErrorResponse(
+			messageID,
 			fmt.Errorf("malformed callback data: %q", data),
 			"malformed callback data",
+			&menuMarkup,
 		)
 		return
 	}
@@ -38,27 +43,23 @@ func (h *PlansTGHandler) MenuListPlans(
 	includeInactive := strings.EqualFold(segments[2], "all")
 	pageNumber, err := strconv.Atoi(segments[3])
 	if err != nil {
-		responseHandler.ErrorResponse(
+		responseHandler.EditErrorResponse(
+			messageID,
 			fmt.Errorf("parse page number %q: %w", segments[3], err),
 			"failed to parse page number",
+			&menuMarkup,
 		)
 		return
 	}
 
 	plans, err := h.plansService.ListPlans(ctx, includeInactive)
 	if err != nil {
-		responseHandler.ErrorResponse(err, "failed to get list of plans")
+		responseHandler.EditErrorResponse(messageID, err, "failed to get list of plans", &menuMarkup)
 		return
 	}
 
 	if len(plans) == 0 {
-		data := core_tg_callback.Build("plans", "menu")
-		markup := tgbotapi.NewInlineKeyboardMarkup(
-			tgbotapi.NewInlineKeyboardRow(
-				tgbotapi.NewInlineKeyboardButtonData("Назад", data),
-			),
-		)
-		responseHandler.EditResponse("Тарифов не найдено.", &markup)
+		responseHandler.EditResponse("Тарифов не найдено.", &menuMarkup)
 		return
 	}
 
@@ -109,7 +110,7 @@ func (h *PlansTGHandler) MenuListPlans(
 
 	callbackData := core_tg_callback.Build("plans", "list", "menu")
 	backRow := []tgbotapi.InlineKeyboardButton{}
-	backRow = append(backRow, tgbotapi.NewInlineKeyboardButtonData("Назад", callbackData))
+	backRow = append(backRow, tgbotapi.NewInlineKeyboardButtonData("⬅️ Назад", callbackData))
 
 	rows = append(rows, backRow)
 

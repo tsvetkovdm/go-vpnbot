@@ -13,7 +13,7 @@ const (
 func newCreatePlanFlow(plansService PlansService) core_tg_dialog.Flow {
 	exitMarkup := tgbotapi.NewInlineKeyboardMarkup(
 		tgbotapi.NewInlineKeyboardRow(
-			tgbotapi.NewInlineKeyboardButtonData("К тарифам", core_tg_callback.Build("plans", "menu")),
+			tgbotapi.NewInlineKeyboardButtonData("⬅️ К тарифам", core_tg_callback.Build("plans", "menu")),
 		),
 	)
 
