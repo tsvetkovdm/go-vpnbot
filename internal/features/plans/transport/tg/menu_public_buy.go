@@ -4,10 +4,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strconv"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	core_errors "github.com/tsvetkovdm/go-vpnbot/internal/core/errors"
 	core_logger "github.com/tsvetkovdm/go-vpnbot/internal/core/logger"
+	core_tg_callback "github.com/tsvetkovdm/go-vpnbot/internal/core/transport/tg/callback"
 	core_tg_response "github.com/tsvetkovdm/go-vpnbot/internal/core/transport/tg/response"
 	"go.uber.org/zap"
 )
@@ -22,12 +24,11 @@ func (h *PlansTGHandler) MenuPublicBuy(
 	log.Debug("invoke MenuPublicBuy handler")
 
 	messageID := update.CallbackQuery.Message.MessageID
-	backMarkup := tgbotapi.NewInlineKeyboardMarkup(
-		tgbotapi.NewInlineKeyboardRow(
-			tgbotapi.NewInlineKeyboardButtonData("⬅️ К тарифам", "plans:public"),
-			tgbotapi.NewInlineKeyboardButtonData("🏠 Домой", "users:home"),
-		),
+	backRow := tgbotapi.NewInlineKeyboardRow(
+		tgbotapi.NewInlineKeyboardButtonData("⬅️ К тарифам", "plans:public"),
+		tgbotapi.NewInlineKeyboardButtonData("🏠 Домой", "users:home"),
 	)
+	backMarkup := tgbotapi.NewInlineKeyboardMarkup(backRow)
 
 	fail := func(err error) {
 		if errors.Is(err, core_errors.ErrNotFound) {
@@ -66,11 +67,21 @@ func (h *PlansTGHandler) MenuPublicBuy(
 
 	text := fmt.Sprintf(
 		"🧾 Ваш выбор\n\nТариф: %s\nСрок: %s\nЦена: %s\n\n"+
-			"Оплата через бота скоро появится.\nПока для оплаты напишите администратору.",
+			"Нажмите «💳 Оплатить», чтобы получить реквизиты для перевода.",
 		plan.Title,
 		formatPriceDuration(price.Duration),
 		formatPriceAmount(price),
 	)
 
-	responseHandler.EditResponse(text, &backMarkup)
+	markup := tgbotapi.NewInlineKeyboardMarkup(
+		tgbotapi.NewInlineKeyboardRow(
+			tgbotapi.NewInlineKeyboardButtonData(
+				"💳 Оплатить",
+				core_tg_callback.Build("pay", "create", strconv.FormatInt(price.ID, 10)),
+			),
+		),
+		backRow,
+	)
+
+	responseHandler.EditResponse(text, &markup)
 }
