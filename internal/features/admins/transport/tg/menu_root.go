@@ -24,6 +24,9 @@ func (h *AdminsTGHandler) MenuRoot(
 		tgbotapi.NewInlineKeyboardRow(
 			tgbotapi.NewInlineKeyboardButtonData("📊 Тарифы", "plans:menu"),
 		),
+		tgbotapi.NewInlineKeyboardRow(
+			tgbotapi.NewInlineKeyboardButtonData("👤 Моё меню", "users:home"),
+		),
 	)
 
 	if update.CallbackQuery != nil {
