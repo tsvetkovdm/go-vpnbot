@@ -29,14 +29,13 @@ func (h *PlansTGHandler) ActivatePlan(
 
 	plan, err := h.plansService.ActivatePlan(ctx, planID)
 	if err != nil {
-		if errors.Is(err, core_errors.ErrNotFound) {
-			responseHandler.ErrorResponse(err, "failed to activate plan")
+		if errors.Is(err, core_errors.ErrConflict) {
+			responseHandler.TextResponse(fmt.Sprintf("Тариф #%d уже включён.", planID))
 			return
 		}
-
-		responseHandler.TextResponse(fmt.Sprintf("План #%d уже активен.", planID))
+		responseHandler.ErrorResponse(err, "failed to activate plan")
 		return
 	}
 
-	responseHandler.TextResponse(fmt.Sprintf("План %s", formatPlanLine(plan)))
+	responseHandler.TextResponse("Тариф включён: " + formatPlanLine(plan))
 }

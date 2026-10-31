@@ -29,14 +29,14 @@ func (h *PlansTGHandler) DeactivatePlan(
 
 	plan, err := h.plansService.DeactivatePlan(ctx, planID)
 	if err != nil {
-		if errors.Is(err, core_errors.ErrNotFound) {
-			responseHandler.ErrorResponse(err, "failed to deactivate plan")
+		if errors.Is(err, core_errors.ErrConflict) {
+			responseHandler.TextResponse(fmt.Sprintf("Тариф #%d уже выключен.", planID))
 			return
 		}
 
-		responseHandler.TextResponse(fmt.Sprintf("План #%d уже деактивирован.", planID))
+		responseHandler.ErrorResponse(err, "failed to deactivate plan")
 		return
 	}
 
-	responseHandler.TextResponse(fmt.Sprintf("План %s", formatPlanLine(plan)))
+	responseHandler.TextResponse("Тариф выключен: " + formatPlanLine(plan))
 }
