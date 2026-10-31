@@ -249,6 +249,11 @@ func (h *PlansTGHandler) Routes() []core_tg_poller.Route {
 			core_tg_poller.TriggerCallbackPrefix,
 			h.MenuPublicOffer,
 		),
+		core_tg_poller.NewRoute(
+			"plans:buy:",
+			core_tg_poller.TriggerCallbackPrefix,
+			h.MenuPublicBuy,
+		),
 	}
 }
 
