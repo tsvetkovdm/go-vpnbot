@@ -66,7 +66,7 @@ CREATE TABLE payments(
     plan_title_snapshot  VARCHAR(100)   NOT NULL,
     price_snapshot       NUMERIC(10, 2) NOT NULL CHECK (price_snapshot >= 0),
     duration_snapshot    INTERVAL       NOT NULL CHECK (duration_snapshot > interval '0'),
-    status               VARCHAR(20)    NOT NULL DEFAULT 'created' CHECK (status IN ('created', 'pending', 'successful', 'rejected', 'expired', 'cancelled', 'failed')),
+    status               VARCHAR(20)    NOT NULL DEFAULT 'created' CHECK (status IN ('created', 'pending', 'successful', 'rejected', 'expired', 'cancelled')),
     resolved_by_admin_id BIGINT                  REFERENCES admins(id),
     resolved_at          TIMESTAMPTZ,
     created_at           TIMESTAMPTZ    NOT NULL DEFAULT now(),
