@@ -3,6 +3,7 @@ package domain
 type UserOverview struct {
 	User         User
 	Subscription *Subscription
+	IsAdmin      bool
 }
 
 type UserFilter string

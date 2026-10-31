@@ -10,7 +10,11 @@ import (
 const userOverviewColumns = `
 	u.id, u.version, u.telegram_id, u.username, u.first_name, u.email,
 	u.xray_uuid, u.status, u.created_at, u.updated_at,
-	s.id, s.version, s.expires_at, s.anchor_day`
+	s.id, s.version, s.expires_at, s.anchor_day,
+	EXISTS (
+		SELECT 1 FROM vpnbot.admins a
+		WHERE a.telegram_id = u.telegram_id AND a.removed_at IS NULL
+	)`
 
 type UserModel struct {
 	ID         int64
@@ -46,11 +50,13 @@ type UserOverviewModel struct {
 	SubVersion   *int64
 	SubExpiresAt *time.Time
 	SubAnchorDay *int16
+	IsAdmin      bool
 }
 
 func (m UserOverviewModel) toDomain() domain.UserOverview {
 	overview := domain.UserOverview{
-		User: m.User.toDomain(),
+		User:    m.User.toDomain(),
+		IsAdmin: m.IsAdmin,
 	}
 
 	if m.SubID != nil {
@@ -82,5 +88,6 @@ func (m *UserOverviewModel) scanDest() []any {
 		&m.SubVersion,
 		&m.SubExpiresAt,
 		&m.SubAnchorDay,
+		&m.IsAdmin,
 	}
 }

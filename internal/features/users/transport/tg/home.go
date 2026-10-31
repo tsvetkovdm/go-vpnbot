@@ -16,7 +16,7 @@ func assembleHome(o domain.UserOverview, now time.Time) (string, tgbotapi.Inline
 
 	if o.User.Status == domain.StatusBlocked {
 		return "🚫 Доступ ограничен.\nЕсли это ошибка — напишите администратору.",
-			tgbotapi.NewInlineKeyboardMarkup(refreshRow())
+			homeMarkup(o, refreshRow())
 	}
 
 	var sb strings.Builder
@@ -33,7 +33,20 @@ func assembleHome(o domain.UserOverview, now time.Time) (string, tgbotapi.Inline
 		sb.WriteString(subscriptionLines(o, now))
 	}
 
-	return sb.String(), tgbotapi.NewInlineKeyboardMarkup(plansRow, refreshRow())
+	return sb.String(), homeMarkup(o, plansRow, refreshRow())
+}
+
+func homeMarkup(
+	o domain.UserOverview,
+	rows ...[]tgbotapi.InlineKeyboardButton,
+) tgbotapi.InlineKeyboardMarkup {
+	if o.IsAdmin {
+		rows = append(rows, tgbotapi.NewInlineKeyboardRow(
+			tgbotapi.NewInlineKeyboardButtonData("🛠 Админ-меню", "admins:menu"),
+		))
+	}
+
+	return tgbotapi.NewInlineKeyboardMarkup(rows...)
 }
 
 func refreshRow() []tgbotapi.InlineKeyboardButton {
