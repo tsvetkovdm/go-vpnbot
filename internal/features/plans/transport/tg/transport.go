@@ -76,6 +76,11 @@ type PlansService interface {
 		ctx context.Context,
 		planID int64,
 	) error
+
+	DeletePlanPrice(
+		ctx context.Context,
+		priceID int64,
+	) error
 }
 
 func NewPlansTGHandler(
@@ -216,6 +221,18 @@ func (h *PlansTGHandler) Routes() []core_tg_poller.Route {
 			"plans:confirm_delete:",
 			core_tg_poller.TriggerCallbackPrefix,
 			h.MenuDeletePlanConfirm,
+			h.adminOnly,
+		),
+		core_tg_poller.NewRoute(
+			"plans:pdelete:",
+			core_tg_poller.TriggerCallbackPrefix,
+			h.MenuDeletePriceAsk,
+			h.adminOnly,
+		),
+		core_tg_poller.NewRoute(
+			"plans:pconfirm_delete:",
+			core_tg_poller.TriggerCallbackPrefix,
+			h.MenuDeletePriceConfirm,
 			h.adminOnly,
 		),
 		core_tg_poller.NewRoute(

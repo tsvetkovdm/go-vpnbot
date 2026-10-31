@@ -65,6 +65,11 @@ type PlansRepository interface {
 		ctx context.Context,
 		planID int64,
 	) error
+
+	DeletePlanPrice(
+		ctx context.Context,
+		priceID int64,
+	) error
 }
 
 func NewPlansService(
