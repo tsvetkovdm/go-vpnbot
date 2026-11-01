@@ -22,7 +22,7 @@ func (h *PaymentsTGHandler) formatPayment(p domain.Payment) core_tg_html.HTML {
 
 	if p.Status == domain.PaymentStatusPending {
 		return core_tg_html.Sprintf(
-			"⏳ Счёт ожидает подтверждения\n\n%s\nКод: %s\n\n"+
+			"⏳ Проверяем ваш перевод\n\n%s\nКод: %s\n\n"+
 				"Администратор проверит перевод и откроет доступ — вам придёт сообщение.\n"+
 				"Если что-то пошло не так, напишите %s и назовите код.",
 			summary,
@@ -32,16 +32,16 @@ func (h *PaymentsTGHandler) formatPayment(p domain.Payment) core_tg_html.HTML {
 	}
 
 	return core_tg_html.Sprintf(
-		"🧾 Счёт на оплату\n\n%s\n\n"+
+		"💳 Почти готово — осталось оплатить\n\n%s\n\n"+
 			"Переведите сумму любым способом:\n"+
 			"💳 Карта: %s\n"+
-			"📱 СБП: %s\n"+
+			"📱 По номеру телефона: %s\n"+
 			"🏦 Банк: %s\n"+
 			"👤 Получатель: %s\n\n"+
 			"💬 Комментарий к переводу: %s\n"+
-			"Обязательно укажите его - по нему администратор найдёт ваш платёж.\n\n"+
+			"Обязательно укажите его — по нему администратор найдёт ваш перевод.\n\n"+
 			"Нажмите на номер или комментарий, чтобы скопировать.\n"+
-			"После перевода нажмите \n«✅ Я перевёл».",
+			"После перевода нажмите «✅ Я перевёл».",
 		summary,
 		core_tg_html.Code(h.config.CardNumber),
 		core_tg_html.Code(h.config.Phone),
@@ -52,12 +52,8 @@ func (h *PaymentsTGHandler) formatPayment(p domain.Payment) core_tg_html.HTML {
 }
 
 func paymentMarkup(p domain.Payment) tgbotapi.InlineKeyboardMarkup {
-	homeRow := tgbotapi.NewInlineKeyboardRow(
-		tgbotapi.NewInlineKeyboardButtonData("👤 Личный кабинет", "users:home"),
-	)
-
 	if p.Status != domain.PaymentStatusCreated {
-		return tgbotapi.NewInlineKeyboardMarkup(homeRow)
+		return tgbotapi.NewInlineKeyboardMarkup(accountRow())
 	}
 
 	return tgbotapi.NewInlineKeyboardMarkup(
@@ -67,7 +63,7 @@ func paymentMarkup(p domain.Payment) tgbotapi.InlineKeyboardMarkup {
 		tgbotapi.NewInlineKeyboardRow(
 			tgbotapi.NewInlineKeyboardButtonData("❌ Отменить", paymentCallback("cancel", p.ID)),
 		),
-		homeRow,
+		accountRow(),
 	)
 }
 
@@ -86,4 +82,49 @@ func formatAmount(price decimal.Decimal) string {
 		return price.String() + " ₽"
 	}
 	return price.StringFixed(2) + " ₽"
+}
+
+func formatUnresolvedNotice(p domain.Payment) string {
+	choice := fmt.Sprintf("%s, %s — %s", p.PlanTitle, formatDuration(p.Duration), formatAmount(p.Price))
+
+	if p.Status == domain.PaymentStatusPending {
+		return "⏳ Проверяем ваш перевод:\n" + choice + "\n\n" +
+			"Выбрать новый тариф можно будет после проверки."
+	}
+
+	return "⚠️ Вы уже начали оплату:\n" + choice + "\n\n" +
+		"Продолжите или отмените, чтобы выбрать другой тариф."
+}
+
+func unresolvedNoticeMarkup(p domain.Payment) tgbotapi.InlineKeyboardMarkup {
+	rows := [][]tgbotapi.InlineKeyboardButton{
+		tgbotapi.NewInlineKeyboardRow(
+			tgbotapi.NewInlineKeyboardButtonData("💳 Продолжить оплату", "pay:current"),
+		),
+	}
+
+	if p.Status == domain.PaymentStatusCreated {
+		rows = append(rows, tgbotapi.NewInlineKeyboardRow(
+			tgbotapi.NewInlineKeyboardButtonData("❌ Отменить", paymentCallback("cancel", p.ID)),
+		))
+	}
+
+	rows = append(rows, accountRow())
+
+	return tgbotapi.NewInlineKeyboardMarkup(rows...)
+}
+
+func noPaymentMarkup() tgbotapi.InlineKeyboardMarkup {
+	return tgbotapi.NewInlineKeyboardMarkup(
+		tgbotapi.NewInlineKeyboardRow(
+			tgbotapi.NewInlineKeyboardButtonData("💳 Тарифы", "plans:public"),
+		),
+		accountRow(),
+	)
+}
+
+func accountRow() []tgbotapi.InlineKeyboardButton {
+	return tgbotapi.NewInlineKeyboardRow(
+		tgbotapi.NewInlineKeyboardButtonData("👤 Личный кабинет", "users:home"),
+	)
 }

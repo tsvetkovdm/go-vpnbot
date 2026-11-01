@@ -49,5 +49,10 @@ func (h *PaymentsTGHandler) Routes() []core_tg_poller.Route {
 			core_tg_poller.TriggerCallbackPrefix,
 			h.MenuCreatePayment,
 		),
+		core_tg_poller.NewRoute(
+			"pay:current",
+			core_tg_poller.TriggerCallbackPrefix,
+			h.MenuCurrentPayment,
+		),
 	}
 }

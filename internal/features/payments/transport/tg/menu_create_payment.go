@@ -8,7 +8,6 @@ import (
 	domain "github.com/tsvetkovdm/go-vpnbot/internal/core/domains"
 	core_errors "github.com/tsvetkovdm/go-vpnbot/internal/core/errors"
 	core_logger "github.com/tsvetkovdm/go-vpnbot/internal/core/logger"
-	core_tg_html "github.com/tsvetkovdm/go-vpnbot/internal/core/transport/tg/html"
 	core_tg_request "github.com/tsvetkovdm/go-vpnbot/internal/core/transport/tg/request"
 	core_tg_response "github.com/tsvetkovdm/go-vpnbot/internal/core/transport/tg/response"
 	"go.uber.org/zap"
@@ -25,15 +24,12 @@ func (h *PaymentsTGHandler) MenuCreatePayment(
 
 	messageID := update.CallbackQuery.Message.MessageID
 	telegramID := core_tg_request.FromUser(update).ID
-	homeRow := tgbotapi.NewInlineKeyboardRow(
-		tgbotapi.NewInlineKeyboardButtonData("👤 Личный кабинет", "users:home"),
-	)
-	homeMarkup := tgbotapi.NewInlineKeyboardMarkup(homeRow)
+	homeMarkup := tgbotapi.NewInlineKeyboardMarkup(accountRow())
 	backMarkup := tgbotapi.NewInlineKeyboardMarkup(
 		tgbotapi.NewInlineKeyboardRow(
 			tgbotapi.NewInlineKeyboardButtonData("⬅️ К тарифам", "plans:public"),
 		),
-		homeRow,
+		accountRow(),
 	)
 
 	priceID, err := parseIDArg(update.CallbackQuery.Data)
@@ -58,12 +54,8 @@ func (h *PaymentsTGHandler) MenuCreatePayment(
 			return
 		}
 
-		text := core_tg_html.Sprintf(
-			"⚠️ У вас уже есть неоплаченный счёт.\n\n%s",
-			h.formatPayment(existing),
-		)
-		markup := paymentMarkup(existing)
-		responseHandler.EditHTMLResponse(text, &markup)
+		markup := unresolvedNoticeMarkup(existing)
+		responseHandler.EditResponse(formatUnresolvedNotice(existing), &markup)
 		return
 
 	case errors.Is(err, domain.ErrPaymentPlanUnavailable):
