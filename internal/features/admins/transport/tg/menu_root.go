@@ -25,7 +25,7 @@ func (h *AdminsTGHandler) MenuRoot(
 			tgbotapi.NewInlineKeyboardButtonData("📊 Тарифы", "plans:menu"),
 		),
 		tgbotapi.NewInlineKeyboardRow(
-			tgbotapi.NewInlineKeyboardButtonData("👤 Моё меню", "users:home"),
+			tgbotapi.NewInlineKeyboardButtonData("👤 Личный кабинет", "users:home"),
 		),
 	)
 

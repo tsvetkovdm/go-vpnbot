@@ -26,7 +26,7 @@ func (h *PlansTGHandler) MenuPublicBuy(
 	messageID := update.CallbackQuery.Message.MessageID
 	backRow := tgbotapi.NewInlineKeyboardRow(
 		tgbotapi.NewInlineKeyboardButtonData("⬅️ К тарифам", "plans:public"),
-		tgbotapi.NewInlineKeyboardButtonData("🏠 Домой", "users:home"),
+		tgbotapi.NewInlineKeyboardButtonData("👤 Личный кабинет", "users:home"),
 	)
 	backMarkup := tgbotapi.NewInlineKeyboardMarkup(backRow)
 
