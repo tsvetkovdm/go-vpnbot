@@ -19,6 +19,9 @@ import (
 	admins_postgres_repository "github.com/tsvetkovdm/go-vpnbot/internal/features/admins/repository/postgres"
 	admins_service "github.com/tsvetkovdm/go-vpnbot/internal/features/admins/service"
 	admins_transport_tg "github.com/tsvetkovdm/go-vpnbot/internal/features/admins/transport/tg"
+	payments_postgres_repository "github.com/tsvetkovdm/go-vpnbot/internal/features/payments/repository/postgres"
+	payments_service "github.com/tsvetkovdm/go-vpnbot/internal/features/payments/service"
+	payments_transport_tg "github.com/tsvetkovdm/go-vpnbot/internal/features/payments/transport/tg"
 	plans_postgres_repository "github.com/tsvetkovdm/go-vpnbot/internal/features/plans/repository/postgres"
 	plans_service "github.com/tsvetkovdm/go-vpnbot/internal/features/plans/service"
 	plans_transport_tg "github.com/tsvetkovdm/go-vpnbot/internal/features/plans/transport/tg"
@@ -117,6 +120,16 @@ func main() {
 		screens,
 	)
 
+	logger.Debug("initializing feature", zap.String("feature", "payments"))
+	paymentsRepository := payments_postgres_repository.NewPaymentsRepository(pool)
+	paymentsService := payments_service.NewPaymentsService(paymentsRepository)
+	paymentsTransportTG := payments_transport_tg.NewPaymentsTGHandler(
+		bot,
+		paymentsService,
+		payments_transport_tg.NewConfigMust(),
+		cfg.AdminContact,
+	)
+
 	logger.Debug("initializing TG poller")
 
 	router := core_tg_poller.NewRouter()
@@ -124,6 +137,7 @@ func main() {
 	router.RegisterRoutes(adminsTransportTG.Routes()...)
 	router.RegisterRoutes(plansTransportTG.Routes()...)
 	router.RegisterRoutes(subscriptionsTransportTG.Routes()...)
+	router.RegisterRoutes(paymentsTransportTG.Routes()...)
 
 	flows := make(map[string]core_tg_dialog.Flow)
 	for _, flow := range usersTransportTG.Flows() {
