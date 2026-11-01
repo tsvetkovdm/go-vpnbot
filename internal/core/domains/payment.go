@@ -2,6 +2,7 @@ package domain
 
 import (
 	"fmt"
+	"math/rand/v2"
 	"time"
 
 	"github.com/shopspring/decimal"
@@ -19,9 +20,15 @@ const (
 	PaymentStatusExpired    PaymentStatus = "expired"
 )
 
+const (
+	PaymentCommentCodeMin = 1000
+	PaymentCommentCodeMax = 9999
+)
+
 var (
 	ErrPaymentPlanUnavailable  = fmt.Errorf("plan or plan price is unavailable: %w", core_errors.ErrNotFound)
 	ErrPaymentUnresolvedExists = fmt.Errorf("user already has unresolved payment: %w", core_errors.ErrConflict)
+	ErrPaymentUserBlocked      = fmt.Errorf("user is blocked: %w", core_errors.ErrConflict)
 )
 
 type Payment struct {
@@ -31,6 +38,7 @@ type Payment struct {
 	PlanTitle         string
 	Price             decimal.Decimal
 	Duration          Duration
+	CommentCode       int
 	Status            PaymentStatus
 	ResolvedByAdminID *int64
 	ResolvedAt        *time.Time
@@ -57,6 +65,11 @@ func NewPayment(
 		PlanTitle:   plan.Title,
 		Price:       price.Price,
 		Duration:    price.Duration,
+		CommentCode: generateCommentCode(),
 		Status:      PaymentStatusCreated,
 	}, nil
+}
+
+func generateCommentCode() int {
+	return PaymentCommentCodeMin + rand.IntN(PaymentCommentCodeMax-PaymentCommentCodeMin+1)
 }
