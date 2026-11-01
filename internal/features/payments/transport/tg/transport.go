@@ -13,6 +13,7 @@ type PaymentsTGHandler struct {
 	paymentsService PaymentsService
 	config          Config
 	adminContact    string
+	adminChatID     int64
 }
 
 type PaymentsService interface {
@@ -32,6 +33,12 @@ type PaymentsService interface {
 		telegramID int64,
 		paymentID int64,
 	) (domain.Payment, error)
+
+	SubmitPayment(
+		ctx context.Context,
+		telegramID int64,
+		paymentID int64,
+	) (domain.Payment, error)
 }
 
 func NewPaymentsTGHandler(
@@ -39,12 +46,14 @@ func NewPaymentsTGHandler(
 	paymentsService PaymentsService,
 	config Config,
 	adminContact string,
+	adminChatID int64,
 ) *PaymentsTGHandler {
 	return &PaymentsTGHandler{
 		bot:             bot,
 		paymentsService: paymentsService,
 		config:          config,
 		adminContact:    adminContact,
+		adminChatID:     adminChatID,
 	}
 }
 
@@ -64,6 +73,11 @@ func (h *PaymentsTGHandler) Routes() []core_tg_poller.Route {
 			"pay:cancel:",
 			core_tg_poller.TriggerCallbackPrefix,
 			h.MenuCancelPayment,
+		),
+		core_tg_poller.NewRoute(
+			"pay:submit:",
+			core_tg_poller.TriggerCallbackPrefix,
+			h.MenuSubmitPayment,
 		),
 	}
 }

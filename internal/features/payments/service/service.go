@@ -36,6 +36,12 @@ type PaymentsRepository interface {
 		telegramID int64,
 		paymentID int64,
 	) (domain.Payment, error)
+
+	SubmitPayment(
+		ctx context.Context,
+		telegramID int64,
+		paymentID int64,
+	) (domain.Payment, error)
 }
 
 func NewPaymentsService(

@@ -58,7 +58,7 @@ func paymentMarkup(p domain.Payment) tgbotapi.InlineKeyboardMarkup {
 
 	return tgbotapi.NewInlineKeyboardMarkup(
 		tgbotapi.NewInlineKeyboardRow(
-			tgbotapi.NewInlineKeyboardButtonData("✅ Я перевёл", paymentCallback("paid", p.ID)),
+			tgbotapi.NewInlineKeyboardButtonData("✅ Я перевёл", paymentCallback("submit", p.ID)),
 		),
 		tgbotapi.NewInlineKeyboardRow(
 			tgbotapi.NewInlineKeyboardButtonData("❌ Отменить", paymentCallback("cancel", p.ID)),

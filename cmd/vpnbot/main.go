@@ -128,6 +128,7 @@ func main() {
 		paymentsService,
 		payments_transport_tg.NewConfigMust(),
 		cfg.AdminContact,
+		cfg.SuperAdminTelegramID,
 	)
 
 	logger.Debug("initializing TG poller")

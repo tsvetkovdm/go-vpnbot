@@ -20,6 +20,14 @@ func (h *PaymentsTGHandler) MenuCurrentPayment(
 
 	log.Debug("invoke MenuCurrentPayment handler")
 
+	h.showCurrentPayment(ctx, responseHandler, update)
+}
+
+func (h *PaymentsTGHandler) showCurrentPayment(
+	ctx context.Context,
+	responseHandler *core_tg_response.TGResponseHandler,
+	update tgbotapi.Update,
+) {
 	messageID := update.CallbackQuery.Message.MessageID
 	telegramID := core_tg_request.FromUser(update).ID
 
