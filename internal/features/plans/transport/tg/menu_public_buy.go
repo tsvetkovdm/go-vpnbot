@@ -67,7 +67,7 @@ func (h *PlansTGHandler) MenuPublicBuy(
 
 	text := fmt.Sprintf(
 		"🧾 Ваш выбор\n\nТариф: %s\nСрок: %s\nЦена: %s\n\n"+
-			"Нажмите «💳 Оплатить», чтобы получить реквизиты для перевода.",
+			"Нажмите «💳\u00a0Оплатить», чтобы получить реквизиты для перевода.",
 		plan.Title,
 		formatPriceDuration(price.Duration),
 		formatPriceAmount(price),
