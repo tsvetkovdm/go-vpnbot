@@ -4,6 +4,8 @@ type UserOverview struct {
 	User         User
 	Subscription *Subscription
 	IsAdmin      bool
+
+	UnresolvedPaymentStatus *PaymentStatus
 }
 
 type UserFilter string

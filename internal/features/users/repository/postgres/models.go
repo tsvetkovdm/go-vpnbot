@@ -14,6 +14,10 @@ const userOverviewColumns = `
 	EXISTS (
 		SELECT 1 FROM vpnbot.admins a
 		WHERE a.telegram_id = u.telegram_id AND a.removed_at IS NULL
+	),
+	(
+		SELECT pay.status FROM vpnbot.payments pay
+		WHERE pay.user_id = u.id AND pay.status IN ('created', 'pending')
 	)`
 
 type UserModel struct {
@@ -51,12 +55,19 @@ type UserOverviewModel struct {
 	SubExpiresAt *time.Time
 	SubAnchorDay *int16
 	IsAdmin      bool
+
+	UnresolvedPaymentStatus *string
 }
 
 func (m UserOverviewModel) toDomain() domain.UserOverview {
 	overview := domain.UserOverview{
 		User:    m.User.toDomain(),
 		IsAdmin: m.IsAdmin,
+	}
+
+	if m.UnresolvedPaymentStatus != nil {
+		status := domain.PaymentStatus(*m.UnresolvedPaymentStatus)
+		overview.UnresolvedPaymentStatus = &status
 	}
 
 	if m.SubID != nil {
@@ -89,5 +100,6 @@ func (m *UserOverviewModel) scanDest() []any {
 		&m.SubExpiresAt,
 		&m.SubAnchorDay,
 		&m.IsAdmin,
+		&m.UnresolvedPaymentStatus,
 	}
 }
