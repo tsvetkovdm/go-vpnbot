@@ -39,12 +39,12 @@ func (h *PaymentsTGHandler) formatPayment(p domain.Payment) core_tg_html.HTML {
 			"🏦 Банк: %s\n"+
 			"👤 Получатель: %s\n\n"+
 			"💬 Комментарий к переводу: %s\n"+
-			"Обязательно укажите его — по нему администратор найдёт ваш платёж.\n\n"+
+			"Обязательно укажите его - по нему администратор найдёт ваш платёж.\n\n"+
 			"Нажмите на номер или комментарий, чтобы скопировать.\n"+
-			"После перевода нажмите «✅ Я перевёл».",
+			"После перевода нажмите \n«✅ Я перевёл».",
 		summary,
 		core_tg_html.Code(h.config.CardNumber),
-		core_tg_html.Code(h.config.SBPPhone),
+		core_tg_html.Code(h.config.Phone),
 		core_tg_html.Escape(h.config.Bank),
 		core_tg_html.Escape(h.config.Recipient),
 		core_tg_html.Code(code),

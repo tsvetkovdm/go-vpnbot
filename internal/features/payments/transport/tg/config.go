@@ -8,7 +8,7 @@ import (
 
 type Config struct {
 	CardNumber string `envconfig:"CARD_NUMBER" required:"true"`
-	SBPPhone   string `envconfig:"SBP_PHONE" required:"true"`
+	Phone      string `envconfig:"PHONE" required:"true"`
 	Bank       string `envconfig:"BANK" required:"true"`
 	Recipient  string `envconfig:"RECIPIENT" required:"true"`
 }
