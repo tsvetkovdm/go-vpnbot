@@ -26,6 +26,12 @@ type PaymentsService interface {
 		ctx context.Context,
 		telegramID int64,
 	) (domain.Payment, error)
+
+	CancelPayment(
+		ctx context.Context,
+		telegramID int64,
+		paymentID int64,
+	) (domain.Payment, error)
 }
 
 func NewPaymentsTGHandler(
@@ -53,6 +59,11 @@ func (h *PaymentsTGHandler) Routes() []core_tg_poller.Route {
 			"pay:current",
 			core_tg_poller.TriggerCallbackPrefix,
 			h.MenuCurrentPayment,
+		),
+		core_tg_poller.NewRoute(
+			"pay:cancel:",
+			core_tg_poller.TriggerCallbackPrefix,
+			h.MenuCancelPayment,
 		),
 	}
 }

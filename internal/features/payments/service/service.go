@@ -30,6 +30,12 @@ type PaymentsRepository interface {
 		ctx context.Context,
 		telegramID int64,
 	) (domain.Payment, error)
+
+	CancelPayment(
+		ctx context.Context,
+		telegramID int64,
+		paymentID int64,
+	) (domain.Payment, error)
 }
 
 func NewPaymentsService(
