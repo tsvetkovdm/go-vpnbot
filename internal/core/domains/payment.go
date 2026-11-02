@@ -30,6 +30,7 @@ var (
 	ErrPaymentUnresolvedExists = fmt.Errorf("user already has unresolved payment: %w", core_errors.ErrConflict)
 	ErrPaymentUserBlocked      = fmt.Errorf("user is blocked: %w", core_errors.ErrConflict)
 	ErrPaymentAlreadyResolved  = fmt.Errorf("payment is already resolved: %w", core_errors.ErrConflict)
+	ErrPaymentFreeUnavailable  = fmt.Errorf("free plan price is only for new users: %w", core_errors.ErrConflict)
 )
 
 type Payment struct {
@@ -86,4 +87,8 @@ func NewPayment(
 
 func generateCommentCode() int {
 	return PaymentCommentCodeMin + rand.IntN(PaymentCommentCodeMax-PaymentCommentCodeMin+1)
+}
+
+func (p Payment) IsFree() bool {
+	return p.Price.IsZero()
 }

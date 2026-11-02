@@ -27,6 +27,12 @@ type PaymentsService interface {
 		planPriceID int64,
 	) (domain.Payment, error)
 
+	ClaimFreePayment(
+		ctx context.Context,
+		telegramID int64,
+		planPriceID int64,
+	) (domain.ResolvedPayment, error)
+
 	GetUnresolvedPayment(
 		ctx context.Context,
 		telegramID int64,
@@ -98,6 +104,11 @@ func (h *PaymentsTGHandler) Routes() []core_tg_poller.Route {
 			"pay:create:",
 			core_tg_poller.TriggerCallbackPrefix,
 			h.MenuCreatePayment,
+		),
+		core_tg_poller.NewRoute(
+			"pay:free:",
+			core_tg_poller.TriggerCallbackPrefix,
+			h.MenuClaimFreePayment,
 		),
 		core_tg_poller.NewRoute(
 			"pay:current",

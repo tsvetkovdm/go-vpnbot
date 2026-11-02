@@ -21,9 +21,12 @@ func (r *PaymentsRepository) CreatePayment(
 	INSERT INTO vpnbot.payments AS p (
 		user_id, plan_price_id,
 		plan_title_snapshot, price_snapshot, duration_snapshot,
-		comment_code, status
+		comment_code, status, resolved_at
 	)
-	VALUES ($1, $2, $3, $4, $5, $6, $7)
+	VALUES (
+		$1, $2, $3, $4, $5, $6, $7::VARCHAR,
+		CASE WHEN $7::VARCHAR = 'successful' THEN now() END
+	)
 	RETURNING ` + paymentColumns + `;
 	`
 
