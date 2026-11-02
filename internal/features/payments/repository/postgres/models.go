@@ -47,9 +47,9 @@ func (m PaymentModel) toDomain() domain.Payment {
 	}
 }
 
-func scanPayment(row core_postgres_pool.Row) (PaymentModel, error) {
+func scanPayment(row core_postgres_pool.Row, extra ...any) (PaymentModel, error) {
 	var m PaymentModel
-	err := row.Scan(
+	dest := []any{
 		&m.ID,
 		&m.UserID,
 		&m.PlanPriceID,
@@ -62,7 +62,8 @@ func scanPayment(row core_postgres_pool.Row) (PaymentModel, error) {
 		&m.ResolvedAt,
 		&m.CreatedAt,
 		&m.UpdatedAt,
-	)
+	}
+	err := row.Scan(append(dest, extra...)...)
 	return m, err
 }
 

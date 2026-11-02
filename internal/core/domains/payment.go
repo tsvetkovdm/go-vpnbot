@@ -29,6 +29,7 @@ var (
 	ErrPaymentPlanUnavailable  = fmt.Errorf("plan or plan price is unavailable: %w", core_errors.ErrNotFound)
 	ErrPaymentUnresolvedExists = fmt.Errorf("user already has unresolved payment: %w", core_errors.ErrConflict)
 	ErrPaymentUserBlocked      = fmt.Errorf("user is blocked: %w", core_errors.ErrConflict)
+	ErrPaymentAlreadyResolved  = fmt.Errorf("payment is already resolved: %w", core_errors.ErrConflict)
 )
 
 type Payment struct {
@@ -44,6 +45,12 @@ type Payment struct {
 	ResolvedAt        *time.Time
 	CreatedAt         time.Time
 	UpdatedAt         time.Time
+}
+
+type ResolvedPayment struct {
+	Payment        Payment
+	UserTelegramID int64
+	Subscription   *Subscription
 }
 
 func NewPayment(

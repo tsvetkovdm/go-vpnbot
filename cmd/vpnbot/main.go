@@ -122,10 +122,16 @@ func main() {
 
 	logger.Debug("initializing feature", zap.String("feature", "payments"))
 	paymentsRepository := payments_postgres_repository.NewPaymentsRepository(pool)
-	paymentsService := payments_service.NewPaymentsService(paymentsRepository)
+	paymentsService := payments_service.NewPaymentsService(
+		paymentsRepository,
+		subscriptionsService,
+		pool,
+	)
 	paymentsTransportTG := payments_transport_tg.NewPaymentsTGHandler(
 		bot,
 		paymentsService,
+		adminOnly,
+		screens,
 		payments_transport_tg.NewConfigMust(),
 		cfg.AdminContact,
 		cfg.SuperAdminTelegramID,

@@ -4,10 +4,13 @@ import (
 	"context"
 
 	domain "github.com/tsvetkovdm/go-vpnbot/internal/core/domains"
+	core_postgres_pool "github.com/tsvetkovdm/go-vpnbot/internal/core/repository/postgres/pool"
 )
 
 type PaymentsService struct {
-	paymentsRepository PaymentsRepository
+	paymentsRepository   PaymentsRepository
+	subscriptionsService SubscriptionsService
+	transactor           core_postgres_pool.Transactor
 }
 
 type PaymentsRepository interface {
@@ -31,6 +34,11 @@ type PaymentsRepository interface {
 		telegramID int64,
 	) (domain.Payment, error)
 
+	GetPaymentByID(
+		ctx context.Context,
+		paymentID int64,
+	) (domain.Payment, error)
+
 	CancelPayment(
 		ctx context.Context,
 		telegramID int64,
@@ -42,12 +50,32 @@ type PaymentsRepository interface {
 		telegramID int64,
 		paymentID int64,
 	) (domain.Payment, error)
+
+	ResolvePayment(
+		ctx context.Context,
+		paymentID int64,
+		adminTelegramID int64,
+		status domain.PaymentStatus,
+	) (domain.Payment, int64, error)
+}
+
+type SubscriptionsService interface {
+	Extend(
+		ctx context.Context,
+		userID int64,
+		d domain.Duration,
+		expectedVersion int64,
+	) (domain.Subscription, error)
 }
 
 func NewPaymentsService(
 	paymentsRepository PaymentsRepository,
+	subscriptionsService SubscriptionsService,
+	transactor core_postgres_pool.Transactor,
 ) *PaymentsService {
 	return &PaymentsService{
-		paymentsRepository: paymentsRepository,
+		paymentsRepository:   paymentsRepository,
+		subscriptionsService: subscriptionsService,
+		transactor:           transactor,
 	}
 }

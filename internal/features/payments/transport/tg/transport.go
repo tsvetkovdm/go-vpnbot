@@ -5,12 +5,16 @@ import (
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	domain "github.com/tsvetkovdm/go-vpnbot/internal/core/domains"
+	core_tg_middleware "github.com/tsvetkovdm/go-vpnbot/internal/core/transport/tg/middleware"
 	core_tg_poller "github.com/tsvetkovdm/go-vpnbot/internal/core/transport/tg/poller"
+	core_tg_screen "github.com/tsvetkovdm/go-vpnbot/internal/core/transport/tg/screen"
 )
 
 type PaymentsTGHandler struct {
 	bot             *tgbotapi.BotAPI
 	paymentsService PaymentsService
+	adminOnly       core_tg_middleware.Middleware
+	screens         *core_tg_screen.Screens
 	config          Config
 	adminContact    string
 	adminChatID     int64
@@ -28,6 +32,11 @@ type PaymentsService interface {
 		telegramID int64,
 	) (domain.Payment, error)
 
+	GetPaymentByID(
+		ctx context.Context,
+		paymentID int64,
+	) (domain.Payment, error)
+
 	CancelPayment(
 		ctx context.Context,
 		telegramID int64,
@@ -39,11 +48,25 @@ type PaymentsService interface {
 		telegramID int64,
 		paymentID int64,
 	) (domain.Payment, error)
+
+	ConfirmPayment(
+		ctx context.Context,
+		paymentID int64,
+		adminTelegramID int64,
+	) (domain.ResolvedPayment, error)
+
+	RejectPayment(
+		ctx context.Context,
+		paymentID int64,
+		adminTelegramID int64,
+	) (domain.ResolvedPayment, error)
 }
 
 func NewPaymentsTGHandler(
 	bot *tgbotapi.BotAPI,
 	paymentsService PaymentsService,
+	adminOnly core_tg_middleware.Middleware,
+	screens *core_tg_screen.Screens,
 	config Config,
 	adminContact string,
 	adminChatID int64,
@@ -51,6 +74,8 @@ func NewPaymentsTGHandler(
 	return &PaymentsTGHandler{
 		bot:             bot,
 		paymentsService: paymentsService,
+		adminOnly:       adminOnly,
+		screens:         screens,
 		config:          config,
 		adminContact:    adminContact,
 		adminChatID:     adminChatID,
@@ -78,6 +103,24 @@ func (h *PaymentsTGHandler) Routes() []core_tg_poller.Route {
 			"pay:submit:",
 			core_tg_poller.TriggerCallbackPrefix,
 			h.MenuSubmitPayment,
+		),
+		core_tg_poller.NewRoute(
+			"pay:confirm:",
+			core_tg_poller.TriggerCallbackPrefix,
+			h.MenuConfirmPayment,
+			h.adminOnly,
+		),
+		core_tg_poller.NewRoute(
+			"pay:reject:",
+			core_tg_poller.TriggerCallbackPrefix,
+			h.MenuRejectPayment,
+			h.adminOnly,
+		),
+		core_tg_poller.NewRoute(
+			"pay:dismiss",
+			core_tg_poller.TriggerCallbackPrefix,
+			h.MenuDismissNotification,
+			h.adminOnly,
 		),
 	}
 }
