@@ -60,6 +60,16 @@ type PaymentsService interface {
 		paymentID int64,
 		adminTelegramID int64,
 	) (domain.ResolvedPayment, error)
+
+	ListPendingPayments(
+		ctx context.Context,
+		limit int,
+	) ([]domain.PaymentOverview, int, error)
+
+	GetPaymentOverview(
+		ctx context.Context,
+		paymentID int64,
+	) (domain.PaymentOverview, error)
 }
 
 func NewPaymentsTGHandler(
@@ -120,6 +130,30 @@ func (h *PaymentsTGHandler) Routes() []core_tg_poller.Route {
 			"pay:dismiss",
 			core_tg_poller.TriggerCallbackPrefix,
 			h.MenuDismissNotification,
+			h.adminOnly,
+		),
+		core_tg_poller.NewRoute(
+			"pay:admin",
+			core_tg_poller.TriggerCallbackPrefix,
+			h.MenuAdminPayments,
+			h.adminOnly,
+		),
+		core_tg_poller.NewRoute(
+			"pay:aview:",
+			core_tg_poller.TriggerCallbackPrefix,
+			h.MenuAdminPayment,
+			h.adminOnly,
+		),
+		core_tg_poller.NewRoute(
+			"pay:aconfirm:",
+			core_tg_poller.TriggerCallbackPrefix,
+			h.MenuAdminResolvePayment,
+			h.adminOnly,
+		),
+		core_tg_poller.NewRoute(
+			"pay:areject:",
+			core_tg_poller.TriggerCallbackPrefix,
+			h.MenuAdminResolvePayment,
 			h.adminOnly,
 		),
 	}

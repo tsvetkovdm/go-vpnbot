@@ -3,8 +3,6 @@ package payments_transport_tg
 import (
 	"context"
 	"errors"
-	"fmt"
-	"time"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	domain "github.com/tsvetkovdm/go-vpnbot/internal/core/domains"
@@ -52,21 +50,6 @@ func (h *PaymentsTGHandler) MenuConfirmPayment(
 		return
 	}
 
-	paidUntil := resolved.Subscription.PaidUntil(time.Local).Format("02.01.2006")
-	p := resolved.Payment
-
 	h.closeNotification(responseHandler, update, "✅ Подтверждено")
-	core_tg_callback.SetAnswer(ctx, fmt.Sprintf(
-		"✅ Подтверждено: код %d, доступ до %s", p.CommentCode, paidUntil,
-	))
-
-	h.screens.Replace(
-		ctx,
-		resolved.UserTelegramID,
-		fmt.Sprintf(
-			"✅ Оплата подтверждена!\n\n%s, %s\nДоступ до %s включительно.",
-			p.PlanTitle, formatDuration(p.Duration), paidUntil,
-		),
-		tgbotapi.NewInlineKeyboardMarkup(accountRow()),
-	)
+	core_tg_callback.SetAnswer(ctx, h.sendConfirmedToUser(ctx, resolved))
 }

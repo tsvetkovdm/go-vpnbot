@@ -3,7 +3,6 @@ package payments_transport_tg
 import (
 	"context"
 	"errors"
-	"fmt"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	domain "github.com/tsvetkovdm/go-vpnbot/internal/core/domains"
@@ -44,20 +43,6 @@ func (h *PaymentsTGHandler) MenuRejectPayment(
 		return
 	}
 
-	p := resolved.Payment
-
 	h.closeNotification(responseHandler, update, "❌ Отклонено")
-	core_tg_callback.SetAnswer(ctx, fmt.Sprintf("❌ Отклонено: код %d", p.CommentCode))
-
-	h.screens.Replace(
-		ctx,
-		resolved.UserTelegramID,
-		fmt.Sprintf(
-			"❌ Перевод не найден\n\n"+
-				"Мы не нашли перевод с комментарием %d на %s.\n"+
-				"Если вы уже перевели деньги — напишите %s и назовите этот код.",
-			p.CommentCode, formatAmount(p.Price), h.adminContact,
-		),
-		noPaymentMarkup(),
-	)
+	core_tg_callback.SetAnswer(ctx, h.sendRejectedToUser(ctx, resolved))
 }

@@ -51,6 +51,16 @@ type PaymentsRepository interface {
 		paymentID int64,
 	) (domain.Payment, error)
 
+	ListPendingPayments(
+		ctx context.Context,
+		limit int,
+	) ([]domain.PaymentOverview, int, error)
+
+	GetPaymentOverview(
+		ctx context.Context,
+		paymentID int64,
+	) (domain.PaymentOverview, error)
+
 	ResolvePayment(
 		ctx context.Context,
 		paymentID int64,

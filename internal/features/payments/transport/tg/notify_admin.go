@@ -18,7 +18,12 @@ func (h *PaymentsTGHandler) notifyAdmin(
 ) {
 	log := core_logger.FromContext(ctx)
 
-	msg := tgbotapi.NewMessage(h.adminChatID, string(formatAdminNotification(payment, from)))
+	text := core_tg_html.Sprintf(
+		"🔔 Новая оплата\n\n%s\n\nПроверьте поступление и подтвердите или отклоните.",
+		formatPaymentForAdmin(payment, from.ID, from.FirstName, from.UserName),
+	)
+
+	msg := tgbotapi.NewMessage(h.adminChatID, string(text))
 	msg.ParseMode = tgbotapi.ModeHTML
 	msg.ReplyMarkup = adminNotificationMarkup(payment)
 
@@ -31,25 +36,28 @@ func (h *PaymentsTGHandler) notifyAdmin(
 	}
 }
 
-func formatAdminNotification(p domain.Payment, from *tgbotapi.User) core_tg_html.HTML {
-	payer := core_tg_html.Escape(from.FirstName)
-	if from.UserName != "" {
-		payer = core_tg_html.Sprintf("%s (@%s)", payer, core_tg_html.Escape(from.UserName))
+func formatPaymentForAdmin(
+	p domain.Payment,
+	telegramID int64,
+	firstName string,
+	username string,
+) core_tg_html.HTML {
+	payer := core_tg_html.Escape(firstName)
+	if username != "" {
+		payer = core_tg_html.Sprintf("%s (@%s)", payer, core_tg_html.Escape(username))
 	}
 
 	return core_tg_html.Sprintf(
-		"🔔 Новая оплата\n\n"+
-			"Код: %s\n"+
+		"Код: %s\n"+
 			"Сумма: %s\n"+
 			"Тариф: %s, %s\n"+
-			"От: %s, ID %s\n\n"+
-			"Проверьте поступление и подтвердите или отклоните.",
+			"От: %s, ID %s",
 		core_tg_html.Code(strconv.Itoa(p.CommentCode)),
 		core_tg_html.Bold(formatAmount(p.Price)),
 		core_tg_html.Escape(p.PlanTitle),
 		core_tg_html.Escape(formatDuration(p.Duration)),
 		payer,
-		core_tg_html.Code(strconv.FormatInt(from.ID, 10)),
+		core_tg_html.Code(strconv.FormatInt(telegramID, 10)),
 	)
 }
 

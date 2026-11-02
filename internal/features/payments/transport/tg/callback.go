@@ -21,6 +21,14 @@ func parseIDArg(data string) (int64, error) {
 	return id, nil
 }
 
+func callbackAction(data string) string {
+	segments := core_tg_callback.Segments(data)
+	if len(segments) < 2 {
+		return ""
+	}
+	return segments[1]
+}
+
 func paymentCallback(action string, paymentID int64) string {
 	return core_tg_callback.Build("pay", action, strconv.FormatInt(paymentID, 10))
 }

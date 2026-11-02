@@ -15,6 +15,9 @@ const paymentColumns = `
 	p.comment_code, p.status, p.resolved_by_admin_id, p.resolved_at,
 	p.created_at, p.updated_at`
 
+const paymentOverviewColumns = paymentColumns + `,
+	u.telegram_id, u.first_name, u.username`
+
 type PaymentModel struct {
 	ID                int64
 	UserID            int64
@@ -65,6 +68,26 @@ func scanPayment(row core_postgres_pool.Row, extra ...any) (PaymentModel, error)
 	}
 	err := row.Scan(append(dest, extra...)...)
 	return m, err
+}
+
+func scanPaymentOverview(row core_postgres_pool.Row, extra ...any) (domain.PaymentOverview, error) {
+	var (
+		overview domain.PaymentOverview
+		username *string
+	)
+
+	m, err := scanPayment(row, append([]any{
+		&overview.UserTelegramID,
+		&overview.UserFirstName,
+		&username,
+	}, extra...)...)
+	if err != nil {
+		return domain.PaymentOverview{}, err
+	}
+
+	overview.Payment = m.toDomain()
+	overview.UserUsername = username
+	return overview, nil
 }
 
 func durationFromInterval(i pgtype.Interval) domain.Duration {

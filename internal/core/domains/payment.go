@@ -53,6 +53,13 @@ type ResolvedPayment struct {
 	Subscription   *Subscription
 }
 
+type PaymentOverview struct {
+	Payment        Payment
+	UserTelegramID int64
+	UserFirstName  string
+	UserUsername   *string
+}
+
 func NewPayment(
 	userID int64,
 	plan Plan,
