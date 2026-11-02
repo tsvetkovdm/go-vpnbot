@@ -13,7 +13,7 @@ import (
 type PaymentsTGHandler struct {
 	bot             *tgbotapi.BotAPI
 	paymentsService PaymentsService
-	adminOnly       core_tg_middleware.Middleware
+	superAdminOnly  core_tg_middleware.Middleware
 	screens         *core_tg_screen.Screens
 	config          Config
 	adminContact    string
@@ -81,7 +81,7 @@ type PaymentsService interface {
 func NewPaymentsTGHandler(
 	bot *tgbotapi.BotAPI,
 	paymentsService PaymentsService,
-	adminOnly core_tg_middleware.Middleware,
+	superAdminOnly core_tg_middleware.Middleware,
 	screens *core_tg_screen.Screens,
 	config Config,
 	adminContact string,
@@ -90,7 +90,7 @@ func NewPaymentsTGHandler(
 	return &PaymentsTGHandler{
 		bot:             bot,
 		paymentsService: paymentsService,
-		adminOnly:       adminOnly,
+		superAdminOnly:  superAdminOnly,
 		screens:         screens,
 		config:          config,
 		adminContact:    adminContact,
@@ -129,43 +129,43 @@ func (h *PaymentsTGHandler) Routes() []core_tg_poller.Route {
 			"pay:confirm:",
 			core_tg_poller.TriggerCallbackPrefix,
 			h.MenuConfirmPayment,
-			h.adminOnly,
+			h.superAdminOnly,
 		),
 		core_tg_poller.NewRoute(
 			"pay:reject:",
 			core_tg_poller.TriggerCallbackPrefix,
 			h.MenuRejectPayment,
-			h.adminOnly,
+			h.superAdminOnly,
 		),
 		core_tg_poller.NewRoute(
 			"pay:dismiss",
 			core_tg_poller.TriggerCallbackPrefix,
 			h.MenuDismissNotification,
-			h.adminOnly,
+			h.superAdminOnly,
 		),
 		core_tg_poller.NewRoute(
 			"pay:admin",
 			core_tg_poller.TriggerCallbackPrefix,
 			h.MenuAdminPayments,
-			h.adminOnly,
+			h.superAdminOnly,
 		),
 		core_tg_poller.NewRoute(
 			"pay:aview:",
 			core_tg_poller.TriggerCallbackPrefix,
 			h.MenuAdminPayment,
-			h.adminOnly,
+			h.superAdminOnly,
 		),
 		core_tg_poller.NewRoute(
 			"pay:aconfirm:",
 			core_tg_poller.TriggerCallbackPrefix,
 			h.MenuAdminResolvePayment,
-			h.adminOnly,
+			h.superAdminOnly,
 		),
 		core_tg_poller.NewRoute(
 			"pay:areject:",
 			core_tg_poller.TriggerCallbackPrefix,
 			h.MenuAdminResolvePayment,
-			h.adminOnly,
+			h.superAdminOnly,
 		),
 	}
 }

@@ -130,7 +130,7 @@ func main() {
 	paymentsTransportTG := payments_transport_tg.NewPaymentsTGHandler(
 		bot,
 		paymentsService,
-		adminOnly,
+		superAdminOnly,
 		screens,
 		payments_transport_tg.NewConfigMust(),
 		cfg.AdminContact,
