@@ -9,8 +9,9 @@ import (
 
 func (s *PlansService) ListPublicPlans(
 	ctx context.Context,
+	includeFree bool,
 ) ([]domain.Plan, error) {
-	plans, err := s.plansRepository.ListPublicPlans(ctx)
+	plans, err := s.plansRepository.ListPublicPlans(ctx, includeFree)
 	if err != nil {
 		return nil, fmt.Errorf("list public plans: %w", err)
 	}

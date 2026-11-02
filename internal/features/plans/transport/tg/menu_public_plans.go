@@ -7,6 +7,7 @@ import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	core_logger "github.com/tsvetkovdm/go-vpnbot/internal/core/logger"
 	core_tg_callback "github.com/tsvetkovdm/go-vpnbot/internal/core/transport/tg/callback"
+	core_tg_request "github.com/tsvetkovdm/go-vpnbot/internal/core/transport/tg/request"
 	core_tg_response "github.com/tsvetkovdm/go-vpnbot/internal/core/transport/tg/response"
 )
 
@@ -26,7 +27,13 @@ func (h *PlansTGHandler) MenuPublicPlans(
 		),
 	)
 
-	plans, err := h.plansService.ListPublicPlans(ctx)
+	includeFree, err := h.plansService.CanUseFreePrices(ctx, core_tg_request.FromUser(update).ID)
+	if err != nil {
+		responseHandler.EditErrorResponse(messageID, err, "failed to check free prices", &homeMarkup)
+		return
+	}
+
+	plans, err := h.plansService.ListPublicPlans(ctx, includeFree)
 	if err != nil {
 		responseHandler.EditErrorResponse(messageID, err, "failed to list public plans", &homeMarkup)
 		return
@@ -37,7 +44,7 @@ func (h *PlansTGHandler) MenuPublicPlans(
 		responseHandler.EditResponse("💳 Тарифы\n\nСейчас нет доступных тарифов.", &homeMarkup)
 
 	case 1:
-		text, markup, err := loadPublicOffer(ctx, h.plansService, plans[0], "users:home")
+		text, markup, err := loadPublicOffer(ctx, h.plansService, plans[0], "users:home", includeFree)
 		if err != nil {
 			responseHandler.EditErrorResponse(messageID, err, "failed to load public offer", &homeMarkup)
 			return

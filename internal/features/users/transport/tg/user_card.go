@@ -27,12 +27,15 @@ func assembleUserCard(
 	return sb.String(), userCardMarkup(o, filter, page)
 }
 
-// Строки о подписке: дата (если подписка есть) и статус.
 func subscriptionLines(o domain.UserOverview, now time.Time) string {
 	var sb strings.Builder
 	sub := o.Subscription
 
 	if sub != nil {
+		if o.LastPlanTitle != nil {
+			sb.WriteString(fmt.Sprintf("📦 Тариф: %s\n", *o.LastPlanTitle))
+		}
+
 		paidUntil := sub.PaidUntil(time.Local).Format("02.01.2006")
 		if sub.HasAccess(now) {
 			sb.WriteString(fmt.Sprintf("📅 Действует до: %s (%s)\n", paidUntil, daysLeftText(sub.DaysLeft(now))))

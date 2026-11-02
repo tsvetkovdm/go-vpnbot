@@ -7,6 +7,7 @@ import (
 
 	decimal "github.com/jackc/pgx-shopspring-decimal"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 	core_postgres_pool "github.com/tsvetkovdm/go-vpnbot/internal/core/repository/postgres/pool"
 )
@@ -54,12 +55,26 @@ func NewPool(
 	}, nil
 }
 
+type querier interface {
+	Query(ctx context.Context, sql string, args ...any) (pgx.Rows, error)
+	QueryRow(ctx context.Context, sql string, args ...any) pgx.Row
+	Exec(ctx context.Context, sql string, args ...any) (pgconn.CommandTag, error)
+}
+
+func (p *Pool) conn(ctx context.Context) querier {
+	if tx, ok := txFromContext(ctx); ok {
+		return tx
+	}
+
+	return p.Pool
+}
+
 func (p *Pool) Query(
 	ctx context.Context,
 	sql string,
 	args ...any,
 ) (core_postgres_pool.Rows, error) {
-	rows, err := p.Pool.Query(ctx, sql, args...)
+	rows, err := p.conn(ctx).Query(ctx, sql, args...)
 	if err != nil {
 		return nil, mapErrors(err)
 	}
@@ -72,7 +87,7 @@ func (p *Pool) QueryRow(
 	sql string,
 	args ...any,
 ) core_postgres_pool.Row {
-	row := p.Pool.QueryRow(ctx, sql, args...)
+	row := p.conn(ctx).QueryRow(ctx, sql, args...)
 
 	return pgxRow{row}
 }
@@ -82,7 +97,7 @@ func (p *Pool) Exec(
 	sql string,
 	args ...any,
 ) (core_postgres_pool.CommandTag, error) {
-	tag, err := p.Pool.Exec(ctx, sql, args...)
+	tag, err := p.conn(ctx).Exec(ctx, sql, args...)
 	if err != nil {
 		return nil, mapErrors(err)
 	}

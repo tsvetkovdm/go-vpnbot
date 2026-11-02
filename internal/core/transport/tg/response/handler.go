@@ -8,6 +8,7 @@ import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	core_errors "github.com/tsvetkovdm/go-vpnbot/internal/core/errors"
 	core_logger "github.com/tsvetkovdm/go-vpnbot/internal/core/logger"
+	core_tg_html "github.com/tsvetkovdm/go-vpnbot/internal/core/transport/tg/html"
 	core_tg_request "github.com/tsvetkovdm/go-vpnbot/internal/core/transport/tg/request"
 	"go.uber.org/zap"
 )
@@ -72,7 +73,18 @@ func (h *TGResponseHandler) EditResponse(
 	}
 
 	h.EditMessage(h.update.CallbackQuery.Message.MessageID, text, markup)
+}
 
+func (h *TGResponseHandler) EditHTMLResponse(
+	text core_tg_html.HTML,
+	markup *tgbotapi.InlineKeyboardMarkup,
+) {
+	if h.update.CallbackQuery == nil || h.update.CallbackQuery.Message == nil {
+		h.log.Error("edit HTML response: update has no callback query or message")
+		return
+	}
+
+	h.editMessage(h.update.CallbackQuery.Message.MessageID, string(text), tgbotapi.ModeHTML, markup)
 }
 
 func (h *TGResponseHandler) EditMessage(
@@ -80,9 +92,19 @@ func (h *TGResponseHandler) EditMessage(
 	text string,
 	markup *tgbotapi.InlineKeyboardMarkup,
 ) {
+	h.editMessage(messageID, text, "", markup)
+}
+
+func (h *TGResponseHandler) editMessage(
+	messageID int,
+	text string,
+	parseMode string,
+	markup *tgbotapi.InlineKeyboardMarkup,
+) {
 	chatID := core_tg_request.ChatID(h.update)
 
 	edit := tgbotapi.NewEditMessageText(chatID, messageID, text)
+	edit.ParseMode = parseMode
 	if markup != nil {
 		edit.ReplyMarkup = markup
 	}

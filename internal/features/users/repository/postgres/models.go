@@ -10,7 +10,21 @@ import (
 const userOverviewColumns = `
 	u.id, u.version, u.telegram_id, u.username, u.first_name, u.email,
 	u.xray_uuid, u.status, u.created_at, u.updated_at,
-	s.id, s.version, s.expires_at, s.anchor_day`
+	s.id, s.version, s.expires_at, s.anchor_day,
+	EXISTS (
+		SELECT 1 FROM vpnbot.admins a
+		WHERE a.telegram_id = u.telegram_id AND a.removed_at IS NULL
+	),
+	(
+		SELECT pay.status FROM vpnbot.payments pay
+		WHERE pay.user_id = u.id AND pay.status IN ('created', 'pending')
+	),
+	(
+		SELECT last.plan_title_snapshot FROM vpnbot.payments last
+		WHERE last.user_id = u.id AND last.status = 'successful'
+		ORDER BY last.resolved_at DESC, last.id DESC
+		LIMIT 1
+	)`
 
 type UserModel struct {
 	ID         int64
@@ -46,11 +60,22 @@ type UserOverviewModel struct {
 	SubVersion   *int64
 	SubExpiresAt *time.Time
 	SubAnchorDay *int16
+	IsAdmin      bool
+
+	UnresolvedPaymentStatus *string
+	LastPlanTitle           *string
 }
 
 func (m UserOverviewModel) toDomain() domain.UserOverview {
 	overview := domain.UserOverview{
-		User: m.User.toDomain(),
+		User:          m.User.toDomain(),
+		IsAdmin:       m.IsAdmin,
+		LastPlanTitle: m.LastPlanTitle,
+	}
+
+	if m.UnresolvedPaymentStatus != nil {
+		status := domain.PaymentStatus(*m.UnresolvedPaymentStatus)
+		overview.UnresolvedPaymentStatus = &status
 	}
 
 	if m.SubID != nil {
@@ -82,5 +107,8 @@ func (m *UserOverviewModel) scanDest() []any {
 		&m.SubVersion,
 		&m.SubExpiresAt,
 		&m.SubAnchorDay,
+		&m.IsAdmin,
+		&m.UnresolvedPaymentStatus,
+		&m.LastPlanTitle,
 	}
 }

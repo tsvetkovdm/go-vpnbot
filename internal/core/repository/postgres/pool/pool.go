@@ -28,3 +28,7 @@ type Row interface {
 type CommandTag interface {
 	RowsAffected() int64
 }
+
+type Transactor interface {
+	WithinTx(ctx context.Context, fn func(ctx context.Context) error) error
+}

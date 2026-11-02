@@ -16,7 +16,7 @@ func assembleHome(o domain.UserOverview, now time.Time) (string, tgbotapi.Inline
 
 	if o.User.Status == domain.StatusBlocked {
 		return "🚫 Доступ ограничен.\nЕсли это ошибка — напишите администратору.",
-			tgbotapi.NewInlineKeyboardMarkup(refreshRow())
+			homeMarkup(o, refreshRow())
 	}
 
 	var sb strings.Builder
@@ -33,7 +33,41 @@ func assembleHome(o domain.UserOverview, now time.Time) (string, tgbotapi.Inline
 		sb.WriteString(subscriptionLines(o, now))
 	}
 
-	return sb.String(), tgbotapi.NewInlineKeyboardMarkup(plansRow, refreshRow())
+	rows := [][]tgbotapi.InlineKeyboardButton{}
+	if row, ok := paymentRow(o); ok {
+		rows = append(rows, row)
+	}
+	rows = append(rows, plansRow, refreshRow())
+
+	return sb.String(), homeMarkup(o, rows...)
+}
+
+func paymentRow(o domain.UserOverview) ([]tgbotapi.InlineKeyboardButton, bool) {
+	if o.UnresolvedPaymentStatus == nil {
+		return nil, false
+	}
+
+	label := "💳 Продолжить оплату"
+	if *o.UnresolvedPaymentStatus == domain.PaymentStatusPending {
+		label = "⏳ Перевод на проверке"
+	}
+
+	return tgbotapi.NewInlineKeyboardRow(
+		tgbotapi.NewInlineKeyboardButtonData(label, "pay:current"),
+	), true
+}
+
+func homeMarkup(
+	o domain.UserOverview,
+	rows ...[]tgbotapi.InlineKeyboardButton,
+) tgbotapi.InlineKeyboardMarkup {
+	if o.IsAdmin {
+		rows = append(rows, tgbotapi.NewInlineKeyboardRow(
+			tgbotapi.NewInlineKeyboardButtonData("🛠 Админ-меню", "admins:menu"),
+		))
+	}
+
+	return tgbotapi.NewInlineKeyboardMarkup(rows...)
 }
 
 func refreshRow() []tgbotapi.InlineKeyboardButton {

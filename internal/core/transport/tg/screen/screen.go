@@ -48,12 +48,36 @@ func (s *Screens) Show(
 		s.deleteOrDisarm(log, chatID, oldID)
 	}
 
+	return s.send(log, chatID, text, markup)
+}
+
+func (s *Screens) Replace(
+	ctx context.Context,
+	chatID int64,
+	text string,
+	markup tgbotapi.InlineKeyboardMarkup,
+) int {
+	log := core_logger.FromContext(ctx)
+
+	if oldID, ok := s.get(chatID); ok {
+		s.deleteOrDisarm(log, chatID, oldID)
+	}
+
+	return s.send(log, chatID, text, markup)
+}
+
+func (s *Screens) send(
+	log *core_logger.Logger,
+	chatID int64,
+	text string,
+	markup tgbotapi.InlineKeyboardMarkup,
+) int {
 	msg := tgbotapi.NewMessage(chatID, text)
 	msg.ReplyMarkup = markup
 
 	sent, err := s.bot.Send(msg)
 	if err != nil {
-		log.Error("screen: send new screen", zap.Error(err))
+		log.Error("screen: send new screen", zap.Int64("chat_id", chatID), zap.Error(err))
 		return 0
 	}
 

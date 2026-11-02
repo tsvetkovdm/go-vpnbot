@@ -27,12 +27,16 @@ func parseIDArg(data string) (int64, error) {
 	return id, nil
 }
 
-func activePrices(prices []domain.PlanPrice) []domain.PlanPrice {
+func publicPrices(prices []domain.PlanPrice, includeFree bool) []domain.PlanPrice {
 	var result []domain.PlanPrice
 	for _, p := range prices {
-		if p.IsActive {
-			result = append(result, p)
+		if !p.IsActive {
+			continue
 		}
+		if p.Price.IsZero() && !includeFree {
+			continue
+		}
+		result = append(result, p)
 	}
 	return result
 }
@@ -42,6 +46,7 @@ func loadPublicOffer(
 	plansService PlansService,
 	plan domain.Plan,
 	backData string,
+	includeFree bool,
 ) (string, tgbotapi.InlineKeyboardMarkup, error) {
 	if !plan.IsActive {
 		return "", tgbotapi.InlineKeyboardMarkup{}, fmt.Errorf("plan id=%d: %w", plan.ID, errPlanUnavailable)
@@ -52,7 +57,7 @@ func loadPublicOffer(
 		return "", tgbotapi.InlineKeyboardMarkup{}, fmt.Errorf("list plan prices: %w", err)
 	}
 
-	prices = activePrices(prices)
+	prices = publicPrices(prices, includeFree)
 	if len(prices) == 0 {
 		return "", tgbotapi.InlineKeyboardMarkup{}, fmt.Errorf("plan id=%d has no active prices: %w", plan.ID, errPlanUnavailable)
 	}

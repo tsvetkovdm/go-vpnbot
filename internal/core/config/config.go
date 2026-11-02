@@ -12,6 +12,7 @@ import (
 type Config struct {
 	TimeZone             *time.Location
 	SuperAdminTelegramID int64
+	AdminContact         string
 }
 
 func NewConfig() (*Config, error) {
@@ -31,9 +32,15 @@ func NewConfig() (*Config, error) {
 		return nil, fmt.Errorf("parse telegram_id %q: %w", arg, core_errors.ErrInvalidArgument)
 	}
 
+	contact := os.Getenv("TG_ADMIN_CONTACT")
+	if contact == "" {
+		return nil, fmt.Errorf("TG_ADMIN_CONTACT is empty: %w", core_errors.ErrInvalidArgument)
+	}
+
 	return &Config{
 		TimeZone:             zone,
 		SuperAdminTelegramID: telegramID,
+		AdminContact:         contact,
 	}, nil
 }
 
