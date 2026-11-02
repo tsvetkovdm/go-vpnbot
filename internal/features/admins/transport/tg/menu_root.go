@@ -5,7 +5,9 @@ import (
 	"fmt"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	domain "github.com/tsvetkovdm/go-vpnbot/internal/core/domains"
 	core_logger "github.com/tsvetkovdm/go-vpnbot/internal/core/logger"
+	core_tg_request "github.com/tsvetkovdm/go-vpnbot/internal/core/transport/tg/request"
 	core_tg_response "github.com/tsvetkovdm/go-vpnbot/internal/core/transport/tg/response"
 	"go.uber.org/zap"
 )
@@ -18,19 +20,15 @@ func (h *AdminsTGHandler) MenuRoot(
 
 	log.Debug("invoke MenuRoot admins handler")
 
-	paymentsLabel := "💰 Платежи"
-	count, err := h.adminsService.CountPendingPayments(ctx)
-	if err != nil {
-		log.Warn("failed to count pending payments", zap.Error(err))
-	} else if count > 0 {
-		paymentsLabel = fmt.Sprintf("💰 Платежи (%d)", count)
+	var rows [][]tgbotapi.InlineKeyboardButton
+	if h.isSuperAdmin(ctx, core_tg_request.FromUser(update).ID) {
+		rows = append(rows, tgbotapi.NewInlineKeyboardRow(
+			tgbotapi.NewInlineKeyboardButtonData(h.paymentsLabel(ctx), "pay:admin"),
+		))
 	}
 
 	text := "Админ меню"
-	markup := tgbotapi.NewInlineKeyboardMarkup(
-		tgbotapi.NewInlineKeyboardRow(
-			tgbotapi.NewInlineKeyboardButtonData(paymentsLabel, "pay:admin"),
-		),
+	rows = append(rows,
 		tgbotapi.NewInlineKeyboardRow(
 			tgbotapi.NewInlineKeyboardButtonData("👥 Пользователи", "users:menu"),
 		),
@@ -41,6 +39,7 @@ func (h *AdminsTGHandler) MenuRoot(
 			tgbotapi.NewInlineKeyboardButtonData("👤 Личный кабинет", "users:home"),
 		),
 	)
+	markup := tgbotapi.NewInlineKeyboardMarkup(rows...)
 
 	if update.CallbackQuery != nil {
 		core_tg_response.NewTGResponseHandler(log, update, h.bot).EditResponse(text, &markup)
@@ -48,4 +47,28 @@ func (h *AdminsTGHandler) MenuRoot(
 	}
 
 	h.screens.Show(ctx, update, text, markup)
+}
+
+func (h *AdminsTGHandler) isSuperAdmin(ctx context.Context, telegramID int64) bool {
+	admin, err := h.adminsService.GetAdminByTelegramID(ctx, telegramID)
+	if err != nil {
+		core_logger.FromContext(ctx).Warn("failed to get admin role", zap.Error(err))
+		return false
+	}
+
+	return admin.Role == domain.RoleSuper
+}
+
+func (h *AdminsTGHandler) paymentsLabel(ctx context.Context) string {
+	count, err := h.adminsService.CountPendingPayments(ctx)
+	if err != nil {
+		core_logger.FromContext(ctx).Warn("failed to count pending payments", zap.Error(err))
+		return "💰 Платежи"
+	}
+
+	if count == 0 {
+		return "💰 Платежи"
+	}
+
+	return fmt.Sprintf("💰 Платежи (%d)", count)
 }
