@@ -33,6 +33,10 @@ type AdminsService interface {
 		ctx context.Context,
 		telegramID int64,
 	) error
+
+	CountPendingPayments(
+		ctx context.Context,
+	) (int, error)
 }
 
 func NewAdminsTGHandler(
