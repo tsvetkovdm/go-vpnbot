@@ -6,6 +6,7 @@ type UserOverview struct {
 	IsAdmin      bool
 
 	UnresolvedPaymentStatus *PaymentStatus
+	LastPlanTitle           *string
 }
 
 type UserFilter string
