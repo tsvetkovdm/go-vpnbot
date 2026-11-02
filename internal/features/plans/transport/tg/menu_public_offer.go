@@ -7,6 +7,7 @@ import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	core_errors "github.com/tsvetkovdm/go-vpnbot/internal/core/errors"
 	core_logger "github.com/tsvetkovdm/go-vpnbot/internal/core/logger"
+	core_tg_request "github.com/tsvetkovdm/go-vpnbot/internal/core/transport/tg/request"
 	core_tg_response "github.com/tsvetkovdm/go-vpnbot/internal/core/transport/tg/response"
 	"go.uber.org/zap"
 )
@@ -48,7 +49,13 @@ func (h *PlansTGHandler) MenuPublicOffer(
 		return
 	}
 
-	text, markup, err := loadPublicOffer(ctx, h.plansService, plan, "plans:public")
+	includeFree, err := h.plansService.CanUseFreePrices(ctx, core_tg_request.FromUser(update).ID)
+	if err != nil {
+		fail(err)
+		return
+	}
+
+	text, markup, err := loadPublicOffer(ctx, h.plansService, plan, "plans:public", includeFree)
 	if err != nil {
 		fail(err)
 		return

@@ -65,6 +65,11 @@ func (h *PlansTGHandler) MenuPublicBuy(
 		return
 	}
 
+	if price.Price.IsZero() {
+		h.showFreePrice(ctx, responseHandler, update, plan, price, backRow)
+		return
+	}
+
 	text := fmt.Sprintf(
 		"🧾 Ваш выбор\n\nТариф: %s\nСрок: %s\nЦена: %s\n\n"+
 			"Нажмите «💳\u00a0Оплатить», чтобы получить реквизиты для перевода.",

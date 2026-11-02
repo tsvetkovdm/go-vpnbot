@@ -9,6 +9,7 @@ import (
 
 func (r *PlansRepository) ListPublicPlans(
 	ctx context.Context,
+	includeFree bool,
 ) ([]domain.Plan, error) {
 	ctx, cancel := context.WithTimeout(ctx, r.pool.OpTimeout())
 	defer cancel()
@@ -21,11 +22,12 @@ func (r *PlansRepository) ListPublicPlans(
 	      SELECT 1
 	      FROM vpnbot.plan_prices pp
 	      WHERE pp.plan_id = p.id AND pp.is_active = true
+	        AND ($1 OR pp.price > 0)
 	  )
 	ORDER BY p.id ASC;
 	`
 
-	rows, err := r.pool.Query(ctx, query)
+	rows, err := r.pool.Query(ctx, query, includeFree)
 	if err != nil {
 		return nil, fmt.Errorf("query error: %w", err)
 	}

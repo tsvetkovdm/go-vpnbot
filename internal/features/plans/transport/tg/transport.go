@@ -54,7 +54,13 @@ type PlansService interface {
 
 	ListPublicPlans(
 		ctx context.Context,
+		includeFree bool,
 	) ([]domain.Plan, error)
+
+	CanUseFreePrices(
+		ctx context.Context,
+		telegramID int64,
+	) (bool, error)
 
 	ActivatePlan(
 		ctx context.Context,
