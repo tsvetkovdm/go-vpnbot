@@ -18,9 +18,11 @@ import (
 	core_tg_middleware "github.com/tsvetkovdm/go-vpnbot/internal/core/transport/tg/middleware"
 	core_tg_poller "github.com/tsvetkovdm/go-vpnbot/internal/core/transport/tg/poller"
 	core_tg_screen "github.com/tsvetkovdm/go-vpnbot/internal/core/transport/tg/screen"
+	core_xray "github.com/tsvetkovdm/go-vpnbot/internal/core/xray"
 	access_postgres_repository "github.com/tsvetkovdm/go-vpnbot/internal/features/access/repository/postgres"
 	access_service "github.com/tsvetkovdm/go-vpnbot/internal/features/access/service"
 	access_transport_http "github.com/tsvetkovdm/go-vpnbot/internal/features/access/transport/http"
+	access_transport_worker "github.com/tsvetkovdm/go-vpnbot/internal/features/access/transport/worker"
 	admins_postgres_repository "github.com/tsvetkovdm/go-vpnbot/internal/features/admins/repository/postgres"
 	admins_service "github.com/tsvetkovdm/go-vpnbot/internal/features/admins/service"
 	admins_transport_tg "github.com/tsvetkovdm/go-vpnbot/internal/features/admins/transport/tg"
@@ -143,13 +145,25 @@ func main() {
 		cfg.SuperAdminTelegramID,
 	)
 
+	logger.Debug("initializing xray client")
+	xrayClient, err := core_xray.NewClient(core_xray.NewConfigMust())
+	if err != nil {
+		logger.Fatal("failed to init xray client", zap.Error(err))
+	}
+	defer xrayClient.Close()
+
 	logger.Debug("initializing feature", zap.String("feature", "access"))
 	accessRepository := access_postgres_repository.NewAccessRepository(pool)
-	accessService := access_service.NewAccessService(accessRepository)
+	accessService := access_service.NewAccessService(accessRepository, xrayClient)
 	accessTransportHTTP := access_transport_http.NewAccessHTTPHandler(
 		accessService,
 		access_transport_http.NewConfigMust(),
 		cfg.AdminContact,
+	)
+	reconcileWorker := access_transport_worker.NewReconcileWorker(
+		accessService,
+		access_transport_worker.NewConfigMust(),
+		logger,
 	)
 
 	logger.Debug("initializing HTTP server")
@@ -207,6 +221,9 @@ func main() {
 			return fmt.Errorf("HTTP server: %w", err)
 		}
 		return nil
+	})
+	group.Go(func() error {
+		return reconcileWorker.Run(gctx)
 	})
 
 	if err := group.Wait(); err != nil {

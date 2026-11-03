@@ -6,6 +6,7 @@ import (
 
 	"github.com/xtls/xray-core/app/proxyman/command"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/backoff"
 	"google.golang.org/grpc/credentials/insecure"
 )
 
@@ -24,6 +25,15 @@ func NewClient(config Config) (*Client, error) {
 	conn, err := grpc.NewClient(
 		config.APIAddr,
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
+		grpc.WithConnectParams(grpc.ConnectParams{
+			Backoff: backoff.Config{
+				BaseDelay:  time.Second,
+				Multiplier: 1.6,
+				Jitter:     0.2,
+				MaxDelay:   5 * time.Second,
+			},
+			MinConnectTimeout: 5 * time.Second,
+		}),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("new grpc client %s: %w", config.APIAddr, err)
