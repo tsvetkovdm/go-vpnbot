@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
@@ -11,11 +12,18 @@ import (
 	core_config "github.com/tsvetkovdm/go-vpnbot/internal/core/config"
 	core_logger "github.com/tsvetkovdm/go-vpnbot/internal/core/logger"
 	core_pgx_pool "github.com/tsvetkovdm/go-vpnbot/internal/core/repository/postgres/pool/pgx"
+	core_http_server "github.com/tsvetkovdm/go-vpnbot/internal/core/transport/http/server"
 	core_tg_client "github.com/tsvetkovdm/go-vpnbot/internal/core/transport/tg/client"
 	core_tg_dialog "github.com/tsvetkovdm/go-vpnbot/internal/core/transport/tg/dialog"
 	core_tg_middleware "github.com/tsvetkovdm/go-vpnbot/internal/core/transport/tg/middleware"
 	core_tg_poller "github.com/tsvetkovdm/go-vpnbot/internal/core/transport/tg/poller"
 	core_tg_screen "github.com/tsvetkovdm/go-vpnbot/internal/core/transport/tg/screen"
+	core_xray "github.com/tsvetkovdm/go-vpnbot/internal/core/xray"
+	access_postgres_repository "github.com/tsvetkovdm/go-vpnbot/internal/features/access/repository/postgres"
+	access_service "github.com/tsvetkovdm/go-vpnbot/internal/features/access/service"
+	access_transport_http "github.com/tsvetkovdm/go-vpnbot/internal/features/access/transport/http"
+	access_transport_tg "github.com/tsvetkovdm/go-vpnbot/internal/features/access/transport/tg"
+	access_transport_worker "github.com/tsvetkovdm/go-vpnbot/internal/features/access/transport/worker"
 	admins_postgres_repository "github.com/tsvetkovdm/go-vpnbot/internal/features/admins/repository/postgres"
 	admins_service "github.com/tsvetkovdm/go-vpnbot/internal/features/admins/service"
 	admins_transport_tg "github.com/tsvetkovdm/go-vpnbot/internal/features/admins/transport/tg"
@@ -32,6 +40,7 @@ import (
 	users_service "github.com/tsvetkovdm/go-vpnbot/internal/features/users/service"
 	users_transport_tg "github.com/tsvetkovdm/go-vpnbot/internal/features/users/transport/tg"
 	"go.uber.org/zap"
+	"golang.org/x/sync/errgroup"
 )
 
 func main() {
@@ -137,6 +146,41 @@ func main() {
 		cfg.SuperAdminTelegramID,
 	)
 
+	logger.Debug("initializing xray client")
+	xrayClient, err := core_xray.NewClient(core_xray.NewConfigMust())
+	if err != nil {
+		logger.Fatal("failed to init xray client", zap.Error(err))
+	}
+	defer xrayClient.Close()
+
+	logger.Debug("initializing feature", zap.String("feature", "access"))
+	accessRepository := access_postgres_repository.NewAccessRepository(pool)
+	accessService := access_service.NewAccessService(accessRepository, xrayClient)
+	accessTransportHTTP := access_transport_http.NewAccessHTTPHandler(
+		accessService,
+		access_transport_http.NewConfigMust(),
+		cfg.AdminContact,
+	)
+	accessTransportTG := access_transport_tg.NewAccessTGHandler(
+		bot,
+		accessService,
+		access_transport_tg.NewConfigMust(),
+	)
+	reconcileWorker := access_transport_worker.NewReconcileWorker(
+		accessService,
+		access_transport_worker.NewConfigMust(),
+		logger,
+	)
+
+	logger.Debug("initializing HTTP server")
+	mux := http.NewServeMux()
+	accessTransportHTTP.Register(mux)
+	httpServer := core_http_server.NewServer(
+		core_http_server.NewConfigMust(),
+		logger,
+		mux,
+	)
+
 	logger.Debug("initializing TG poller")
 
 	router := core_tg_poller.NewRouter()
@@ -145,6 +189,7 @@ func main() {
 	router.RegisterRoutes(plansTransportTG.Routes()...)
 	router.RegisterRoutes(subscriptionsTransportTG.Routes()...)
 	router.RegisterRoutes(paymentsTransportTG.Routes()...)
+	router.RegisterRoutes(accessTransportTG.Routes()...)
 
 	flows := make(map[string]core_tg_dialog.Flow)
 	for _, flow := range usersTransportTG.Flows() {
@@ -171,7 +216,24 @@ func main() {
 		core_tg_middleware.Dialog(bot, dialogStore, flows),
 	)
 
-	if err := poller.Run(ctx); err != nil {
-		logger.Error("TG poller run error", zap.Error(err))
+	group, gctx := errgroup.WithContext(ctx)
+	group.Go(func() error {
+		if err := poller.Run(gctx); err != nil {
+			return fmt.Errorf("TG poller: %w", err)
+		}
+		return nil
+	})
+	group.Go(func() error {
+		if err := httpServer.Run(gctx); err != nil {
+			return fmt.Errorf("HTTP server: %w", err)
+		}
+		return nil
+	})
+	group.Go(func() error {
+		return reconcileWorker.Run(gctx)
+	})
+
+	if err := group.Wait(); err != nil {
+		logger.Error("application run error", zap.Error(err))
 	}
 }

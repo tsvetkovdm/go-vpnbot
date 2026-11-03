@@ -99,6 +99,6 @@ func intervalFromDuration(d domain.Duration) pgtype.Interval {
 		Months:       d.Months,
 		Days:         d.Days,
 		Microseconds: d.Microseconds,
-		Valid:        true, // false означало бы NULL
+		Valid:        true,
 	}
 }

@@ -94,3 +94,35 @@ CREATE TABLE admin_audit_log (
     comment     TEXT,
     created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+CREATE TABLE connections (
+    id            BIGSERIAL    PRIMARY KEY,
+    title         VARCHAR(64)  NOT NULL,
+    inbound_tag   VARCHAR(64)  NOT NULL,
+    link_template TEXT         NOT NULL CHECK (
+                      link_template LIKE 'vless://{uuid}@%'
+                      AND position('#' IN link_template) = 0
+                  ),
+    is_public     BOOL         NOT NULL DEFAULT false,
+    is_active     BOOL         NOT NULL DEFAULT false,
+    sort_order    INT          NOT NULL DEFAULT 0,
+    created_at    TIMESTAMPTZ  NOT NULL DEFAULT now(),
+    updated_at    TIMESTAMPTZ  NOT NULL DEFAULT now()
+);
+
+CREATE TABLE access_grants (
+    id                  BIGSERIAL   PRIMARY KEY,
+    user_id             BIGINT      NOT NULL REFERENCES users(id),
+    connection_id       BIGINT      NOT NULL REFERENCES connections(id),
+    expires_at          TIMESTAMPTZ NOT NULL,
+    granted_by_admin_id BIGINT      REFERENCES admins(id),
+    created_at          TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at          TIMESTAMPTZ NOT NULL DEFAULT now(),
+    UNIQUE (user_id, connection_id)
+);
+
+CREATE TABLE feed_tokens (
+    user_id    BIGINT      PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+    token      VARCHAR(64) NOT NULL UNIQUE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);

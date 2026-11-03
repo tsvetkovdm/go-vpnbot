@@ -10,6 +10,20 @@ services:
         condition: service_healthy
     network_mode: host
     environment:
+      - POSTGRES_HOST=${POSTGRES_HOST}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_TIMEOUT=${POSTGRES_TIMEOUT}
+      - TIME_ZONE=${TIME_ZONE}
+      - LOGGER_LEVEL=${LOGGER_LEVEL}
+      - LOGGER_FOLDER=/app/out/logs
+      - HTTP_ADDR=${HTTP_ADDR}
+      - HTTP_SHUTDOWN_TIMEOUT=${HTTP_SHUTDOWN_TIMEOUT}
+      - XRAY_API_ADDR=${XRAY_API_ADDR}
+      - XRAY_TIMEOUT=${XRAY_TIMEOUT}
+      - RECONCILE_INTERVAL=${RECONCILE_INTERVAL}
+      - RECONCILE_DRY_RUN=${RECONCILE_DRY_RUN}
       - TG_TOKEN=${TG_TOKEN}
       - TG_PROXY_ADDR=${TG_PROXY_ADDR}
       - TG_POLL_TIMEOUT=${TG_POLL_TIMEOUT}
@@ -20,14 +34,10 @@ services:
       - PAYMENT_PHONE=${PAYMENT_PHONE}
       - PAYMENT_BANK=${PAYMENT_BANK}
       - PAYMENT_RECIPIENT=${PAYMENT_RECIPIENT}
-      - POSTGRES_HOST=${POSTGRES_HOST}
-      - POSTGRES_USER=${POSTGRES_USER}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-      - POSTGRES_DB=${POSTGRES_DB}
-      - POSTGRES_TIMEOUT=${POSTGRES_TIMEOUT}
-      - TIME_ZONE=${TIME_ZONE}
-      - LOGGER_LEVEL=${LOGGER_LEVEL}
-      - LOGGER_FOLDER=/app/out/logs
+      - FEED_PROFILE_TITLE=${FEED_PROFILE_TITLE}
+      - FEED_UPDATE_INTERVAL_HOURS=${FEED_UPDATE_INTERVAL_HOURS}
+      - FEED_SUPPORT_URL=${FEED_SUPPORT_URL}
+      - FEED_PUBLIC_URL=${FEED_PUBLIC_URL}
     volumes:
       - ${PROJECT_ROOT}/out/logs:/app/out/logs
     restart: always
@@ -63,3 +73,12 @@ services:
     command: tcp-listen:5432,fork,reuseaddr tcp-connect:vpnbot-postgres:5432
     ports:
       - "127.0.0.1:5432:5432"
+
+  vpnbot-xray-dev:
+    image: ghcr.io/xtls/xray-core:26.3.27
+    container_name: vpnbot-xray-dev
+    command: ["run", "-c", "/etc/xray/config.json"]
+    volumes:
+      - ${PROJECT_ROOT}/dev/xray/config.json:/etc/xray/config.json:ro
+    ports:
+      - "127.0.0.1:10085:10085"

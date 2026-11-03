@@ -170,7 +170,6 @@ func stepAwaitPrice(plansService PlansService) core_tg_dialog.Step {
 	}
 }
 
-// loadDuration — срок, сохранённый шагом stepAwaitDurationValue
 func loadDuration(session *core_tg_dialog.Session) (domain.Duration, error) {
 	months, err := strconv.Atoi(session.Data[dataKeyDurationMonths])
 	if err != nil {
@@ -183,8 +182,6 @@ func loadDuration(session *core_tg_dialog.Session) (domain.Duration, error) {
 	return domain.NewDuration(int32(months), int32(days), 0), nil
 }
 
-// completeWithPlanCard завершает диалог сообщением + свежей карточкой тарифа.
-// Если карточку загрузить не удалось — сообщение остаётся, кнопка ведёт в список.
 func completeWithPlanCard(
 	ctx context.Context,
 	plansService PlansService,

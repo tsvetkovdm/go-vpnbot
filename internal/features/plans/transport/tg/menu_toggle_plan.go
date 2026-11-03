@@ -44,7 +44,6 @@ func (h *PlansTGHandler) MenuTogglePlan(
 		err = fmt.Errorf("unknown plan action %q", action)
 	}
 
-	// ErrConflict = тариф уже в нужном состоянии (повторное нажатие) — просто показываем карточку
 	if err != nil && !errors.Is(err, core_errors.ErrConflict) {
 		responseHandler.EditErrorResponse(messageID, err, "failed to toggle plan", &backMarkup)
 		return

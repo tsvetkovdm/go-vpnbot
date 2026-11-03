@@ -79,3 +79,9 @@ vpnbot-undeploy:
 
 ps:
 	@docker compose ps
+
+xray-dev-up:
+	@docker compose up -d vpnbot-xray-dev
+
+xray-dev-down:
+	@docker compose down vpnbot-xray-dev

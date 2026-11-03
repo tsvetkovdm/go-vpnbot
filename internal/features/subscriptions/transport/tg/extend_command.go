@@ -24,7 +24,6 @@ func (h *SubscriptionsTGHandler) ExtendCommand(
 
 	log.Debug("invoke ExtendCommand handler")
 
-	// 1. Аргументы: "<telegram_id> <дни>"
 	args := strings.Fields(update.Message.CommandArguments())
 	if len(args) != 2 {
 		responseHandler.TextResponse("Использование: /extend <telegram_id> <дни>\nПример: /extend 1234567890 30")
@@ -43,7 +42,6 @@ func (h *SubscriptionsTGHandler) ExtendCommand(
 		return
 	}
 
-	// 2. Telegram ID → внутренний user_id
 	userID, err := h.subscriptionsService.ResolveUserID(ctx, telegramID)
 	if errors.Is(err, core_errors.ErrNotFound) {
 		responseHandler.TextResponse(fmt.Sprintf(
@@ -56,7 +54,6 @@ func (h *SubscriptionsTGHandler) ExtendCommand(
 		return
 	}
 
-	// 3. Продление без проверки версии
 	sub, err := h.subscriptionsService.ExtendDays(ctx, userID, days, domain.SubscriptionSkipVersionCheck)
 	if errors.Is(err, core_errors.ErrInvalidArgument) {
 		responseHandler.TextResponse(fmt.Sprintf("Число дней должно быть от 1 до %d.", domain.SubscriptionMaxExtendDays))

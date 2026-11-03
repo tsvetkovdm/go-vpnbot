@@ -3,6 +3,7 @@ package domain
 import (
 	"crypto/rand"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -14,6 +15,8 @@ const (
 	StatusActive  Status = "active"
 	StatusBlocked Status = "blocked"
 )
+
+const UserEmailPrefix = "user-"
 
 type User struct {
 	ID         int64
@@ -54,5 +57,9 @@ func NewUser(
 func generateEmail() string {
 	b := make([]byte, 5)
 	_, _ = rand.Read(b)
-	return fmt.Sprintf("user-%x", b)
+	return fmt.Sprintf("%s%x", UserEmailPrefix, b)
+}
+
+func IsBotUserEmail(email string) bool {
+	return strings.HasPrefix(email, UserEmailPrefix)
 }
