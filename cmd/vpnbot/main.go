@@ -18,6 +18,9 @@ import (
 	core_tg_middleware "github.com/tsvetkovdm/go-vpnbot/internal/core/transport/tg/middleware"
 	core_tg_poller "github.com/tsvetkovdm/go-vpnbot/internal/core/transport/tg/poller"
 	core_tg_screen "github.com/tsvetkovdm/go-vpnbot/internal/core/transport/tg/screen"
+	access_postgres_repository "github.com/tsvetkovdm/go-vpnbot/internal/features/access/repository/postgres"
+	access_service "github.com/tsvetkovdm/go-vpnbot/internal/features/access/service"
+	access_transport_http "github.com/tsvetkovdm/go-vpnbot/internal/features/access/transport/http"
 	admins_postgres_repository "github.com/tsvetkovdm/go-vpnbot/internal/features/admins/repository/postgres"
 	admins_service "github.com/tsvetkovdm/go-vpnbot/internal/features/admins/service"
 	admins_transport_tg "github.com/tsvetkovdm/go-vpnbot/internal/features/admins/transport/tg"
@@ -140,8 +143,18 @@ func main() {
 		cfg.SuperAdminTelegramID,
 	)
 
+	logger.Debug("initializing feature", zap.String("feature", "access"))
+	accessRepository := access_postgres_repository.NewAccessRepository(pool)
+	accessService := access_service.NewAccessService(accessRepository)
+	accessTransportHTTP := access_transport_http.NewAccessHTTPHandler(
+		accessService,
+		access_transport_http.NewConfigMust(),
+		cfg.AdminContact,
+	)
+
 	logger.Debug("initializing HTTP server")
 	mux := http.NewServeMux()
+	accessTransportHTTP.Register(mux)
 	httpServer := core_http_server.NewServer(
 		core_http_server.NewConfigMust(),
 		logger,
