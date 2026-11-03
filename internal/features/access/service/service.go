@@ -18,6 +18,12 @@ type AccessRepository interface {
 		token string,
 	) (domain.FeedOwner, error)
 
+	EnsureFeedToken(
+		ctx context.Context,
+		telegramID int64,
+		newToken string,
+	) (string, error)
+
 	ListAccessibleConnections(
 		ctx context.Context,
 		userID int64,

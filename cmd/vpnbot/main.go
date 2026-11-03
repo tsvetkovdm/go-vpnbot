@@ -22,6 +22,7 @@ import (
 	access_postgres_repository "github.com/tsvetkovdm/go-vpnbot/internal/features/access/repository/postgres"
 	access_service "github.com/tsvetkovdm/go-vpnbot/internal/features/access/service"
 	access_transport_http "github.com/tsvetkovdm/go-vpnbot/internal/features/access/transport/http"
+	access_transport_tg "github.com/tsvetkovdm/go-vpnbot/internal/features/access/transport/tg"
 	access_transport_worker "github.com/tsvetkovdm/go-vpnbot/internal/features/access/transport/worker"
 	admins_postgres_repository "github.com/tsvetkovdm/go-vpnbot/internal/features/admins/repository/postgres"
 	admins_service "github.com/tsvetkovdm/go-vpnbot/internal/features/admins/service"
@@ -160,6 +161,11 @@ func main() {
 		access_transport_http.NewConfigMust(),
 		cfg.AdminContact,
 	)
+	accessTransportTG := access_transport_tg.NewAccessTGHandler(
+		bot,
+		accessService,
+		access_transport_tg.NewConfigMust(),
+	)
 	reconcileWorker := access_transport_worker.NewReconcileWorker(
 		accessService,
 		access_transport_worker.NewConfigMust(),
@@ -183,6 +189,7 @@ func main() {
 	router.RegisterRoutes(plansTransportTG.Routes()...)
 	router.RegisterRoutes(subscriptionsTransportTG.Routes()...)
 	router.RegisterRoutes(paymentsTransportTG.Routes()...)
+	router.RegisterRoutes(accessTransportTG.Routes()...)
 
 	flows := make(map[string]core_tg_dialog.Flow)
 	for _, flow := range usersTransportTG.Flows() {

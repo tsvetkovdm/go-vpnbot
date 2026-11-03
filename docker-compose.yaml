@@ -37,6 +37,7 @@ services:
       - FEED_PROFILE_TITLE=${FEED_PROFILE_TITLE}
       - FEED_UPDATE_INTERVAL_HOURS=${FEED_UPDATE_INTERVAL_HOURS}
       - FEED_SUPPORT_URL=${FEED_SUPPORT_URL}
+      - FEED_PUBLIC_URL=${FEED_PUBLIC_URL}
     volumes:
       - ${PROJECT_ROOT}/out/logs:/app/out/logs
     restart: always

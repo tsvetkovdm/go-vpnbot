@@ -33,7 +33,7 @@ func assembleHome(o domain.UserOverview, now time.Time) (string, tgbotapi.Inline
 		sb.WriteString(subscriptionLines(o, now))
 	}
 
-	rows := [][]tgbotapi.InlineKeyboardButton{}
+	rows := [][]tgbotapi.InlineKeyboardButton{connectRow()}
 	if row, ok := paymentRow(o); ok {
 		rows = append(rows, row)
 	}
@@ -73,5 +73,11 @@ func homeMarkup(
 func refreshRow() []tgbotapi.InlineKeyboardButton {
 	return tgbotapi.NewInlineKeyboardRow(
 		tgbotapi.NewInlineKeyboardButtonData("🔄 Обновить", "users:home"),
+	)
+}
+
+func connectRow() []tgbotapi.InlineKeyboardButton {
+	return tgbotapi.NewInlineKeyboardRow(
+		tgbotapi.NewInlineKeyboardButtonData("🔑 Подключение", "access:connect"),
 	)
 }
