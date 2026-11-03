@@ -1,5 +1,8 @@
 SET search_path TO vpnbot;
 
+DROP TABLE feed_tokens;
+DROP TABLE access_grants;
+DROP TABLE connections;
 DROP TABLE admin_audit_log;
 DROP TABLE payments;
 DROP TABLE subscriptions;
