@@ -116,7 +116,6 @@ func planCardMarkup(
 ) tgbotapi.InlineKeyboardMarkup {
 	id := strconv.FormatInt(plan.ID, 10)
 
-	// len(prices) строк сроков + 3 строки управления
 	rows := make([][]tgbotapi.InlineKeyboardButton, 0, len(prices)+3)
 
 	for _, p := range prices {

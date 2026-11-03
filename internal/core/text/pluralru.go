@@ -5,7 +5,7 @@ func PluralRu(n int, one, few, many string) string {
 		n = -n
 	}
 	n = n % 100
-	if n >= 11 && n <= 14 { // 11–14 — исключение: «11 месяцев», не «11 месяц»
+	if n >= 11 && n <= 14 {
 		return many
 	}
 	switch n % 10 {

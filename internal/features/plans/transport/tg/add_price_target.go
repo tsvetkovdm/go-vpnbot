@@ -13,7 +13,6 @@ const (
 	dataKeyPage   = "page"
 )
 
-// planTarget — тариф, к которому добавляем срок, и куда вернуться (filter/page списка)
 type planTarget struct {
 	planID int64
 	filter string

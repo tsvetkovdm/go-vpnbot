@@ -23,7 +23,6 @@ type dialogTarget struct {
 	page    string
 }
 
-// Из callback subs:<days|date>:<userID>:<version>:<filter>:<page>
 func parseDialogCallback(data string) (dialogTarget, error) {
 	segments := core_tg_callback.Segments(data)
 	if len(segments) != 6 {

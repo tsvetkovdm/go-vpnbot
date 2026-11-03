@@ -29,7 +29,6 @@ func (h *PlansTGHandler) MenuDeletePlanAsk(
 		return
 	}
 
-	// читаем тариф ради названия в вопросе и чтобы сразу поймать «уже удалён»
 	plan, err := h.plansService.GetPlanByID(ctx, planID)
 	if err != nil {
 		markup := tgbotapi.NewInlineKeyboardMarkup(tgbotapi.NewInlineKeyboardRow(backToListButton(filter, page)))

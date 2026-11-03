@@ -22,7 +22,6 @@ func (h *PlansTGHandler) MenuAddPrice(
 	chatID := core_tg_request.ChatID(update)
 	messageID := update.CallbackQuery.Message.MessageID
 
-	// plans:addprice:<planID>:<filter>:<page> — тот же формат, что у plans:view
 	planID, filter, page, err := parseCallbackData(update.CallbackQuery.Data)
 	if err != nil {
 		markup := plansMenuMarkup()

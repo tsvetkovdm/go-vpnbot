@@ -77,7 +77,7 @@ func userCardMarkup(o domain.UserOverview, filter domain.UserFilter, page int) t
 	var rows [][]tgbotapi.InlineKeyboardButton
 
 	if o.User.Status != domain.StatusBlocked {
-		version := "0" // подписки ещё нет
+		version := "0"
 		if o.Subscription != nil {
 			version = strconv.FormatInt(o.Subscription.Version, 10)
 		}

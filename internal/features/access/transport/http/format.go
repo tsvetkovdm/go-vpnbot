@@ -30,7 +30,7 @@ func maskToken(token string) string {
 }
 
 func noAccessTitle(adminContact string) string {
-	return "⛔ Нет доступа — продлите в боте или напишите " + adminContact
+	return "⛔ Нет доступа - продлите в боте или напишите " + adminContact
 }
 
 func placeholderLink(title string) string {

@@ -75,7 +75,7 @@ func diffInbound(
 
 	for _, u := range actual {
 		if !domain.IsBotUserEmail(u.Email) {
-			continue // ручной клиент из config.json — не наш
+			continue
 		}
 		present[u.Email] = u.ID
 

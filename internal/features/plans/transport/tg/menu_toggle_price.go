@@ -50,12 +50,11 @@ func (h *PlansTGHandler) MenuTogglePrice(
 	switch {
 	case err == nil:
 	case errors.Is(err, domain.ErrPlanPriceDuplicateDuration):
-		// проверять раньше ErrConflict: дубль — тоже ErrConflict
 		log.Info("activate plan price rejected: duplicate duration", zap.Error(err))
 		header = "⚠️ Не включён: в тарифе уже есть активный срок такой же длительности " +
 			"(1 месяц и 30 дней считаются одинаковыми). Сначала выключите его.\n\n"
 	case errors.Is(err, core_errors.ErrConflict):
-		// срок уже в нужном состоянии (повторное нажатие) — просто показываем карточку
+		// срок уже в нужном состоянии (повторное нажатие) - просто показываем карточку
 	default:
 		responseHandler.EditErrorResponse(messageID, err, "failed to toggle plan price", &backMarkup)
 		return
