@@ -10,6 +10,16 @@ services:
         condition: service_healthy
     network_mode: host
     environment:
+      - POSTGRES_HOST=${POSTGRES_HOST}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_TIMEOUT=${POSTGRES_TIMEOUT}
+      - TIME_ZONE=${TIME_ZONE}
+      - LOGGER_LEVEL=${LOGGER_LEVEL}
+      - LOGGER_FOLDER=/app/out/logs
+      - HTTP_ADDR=${HTTP_ADDR}
+      - HTTP_SHUTDOWN_TIMEOUT=${HTTP_SHUTDOWN_TIMEOUT}
       - TG_TOKEN=${TG_TOKEN}
       - TG_PROXY_ADDR=${TG_PROXY_ADDR}
       - TG_POLL_TIMEOUT=${TG_POLL_TIMEOUT}
@@ -20,14 +30,6 @@ services:
       - PAYMENT_PHONE=${PAYMENT_PHONE}
       - PAYMENT_BANK=${PAYMENT_BANK}
       - PAYMENT_RECIPIENT=${PAYMENT_RECIPIENT}
-      - POSTGRES_HOST=${POSTGRES_HOST}
-      - POSTGRES_USER=${POSTGRES_USER}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-      - POSTGRES_DB=${POSTGRES_DB}
-      - POSTGRES_TIMEOUT=${POSTGRES_TIMEOUT}
-      - TIME_ZONE=${TIME_ZONE}
-      - LOGGER_LEVEL=${LOGGER_LEVEL}
-      - LOGGER_FOLDER=/app/out/logs
     volumes:
       - ${PROJECT_ROOT}/out/logs:/app/out/logs
     restart: always

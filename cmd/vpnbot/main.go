@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
@@ -11,6 +12,7 @@ import (
 	core_config "github.com/tsvetkovdm/go-vpnbot/internal/core/config"
 	core_logger "github.com/tsvetkovdm/go-vpnbot/internal/core/logger"
 	core_pgx_pool "github.com/tsvetkovdm/go-vpnbot/internal/core/repository/postgres/pool/pgx"
+	core_http_server "github.com/tsvetkovdm/go-vpnbot/internal/core/transport/http/server"
 	core_tg_client "github.com/tsvetkovdm/go-vpnbot/internal/core/transport/tg/client"
 	core_tg_dialog "github.com/tsvetkovdm/go-vpnbot/internal/core/transport/tg/dialog"
 	core_tg_middleware "github.com/tsvetkovdm/go-vpnbot/internal/core/transport/tg/middleware"
@@ -32,6 +34,7 @@ import (
 	users_service "github.com/tsvetkovdm/go-vpnbot/internal/features/users/service"
 	users_transport_tg "github.com/tsvetkovdm/go-vpnbot/internal/features/users/transport/tg"
 	"go.uber.org/zap"
+	"golang.org/x/sync/errgroup"
 )
 
 func main() {
@@ -137,6 +140,14 @@ func main() {
 		cfg.SuperAdminTelegramID,
 	)
 
+	logger.Debug("initializing HTTP server")
+	mux := http.NewServeMux()
+	httpServer := core_http_server.NewServer(
+		core_http_server.NewConfigMust(),
+		logger,
+		mux,
+	)
+
 	logger.Debug("initializing TG poller")
 
 	router := core_tg_poller.NewRouter()
@@ -171,7 +182,21 @@ func main() {
 		core_tg_middleware.Dialog(bot, dialogStore, flows),
 	)
 
-	if err := poller.Run(ctx); err != nil {
-		logger.Error("TG poller run error", zap.Error(err))
+	group, gctx := errgroup.WithContext(ctx)
+	group.Go(func() error {
+		if err := poller.Run(gctx); err != nil {
+			return fmt.Errorf("TG poller: %w", err)
+		}
+		return nil
+	})
+	group.Go(func() error {
+		if err := httpServer.Run(gctx); err != nil {
+			return fmt.Errorf("HTTP server: %w", err)
+		}
+		return nil
+	})
+
+	if err := group.Wait(); err != nil {
+		logger.Error("application run error", zap.Error(err))
 	}
 }
