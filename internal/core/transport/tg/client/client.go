@@ -1,3 +1,13 @@
+package core_tg_client
+
+import (
+	"fmt"
+	"net/http"
+
+	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	"golang.org/x/net/proxy"
+)
+
 func NewBotAPI(config Config) (*tgbotapi.BotAPI, error) {
 	httpClient := &http.Client{}
 
