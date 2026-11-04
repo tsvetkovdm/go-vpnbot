@@ -9,6 +9,8 @@ import (
 	"syscall"
 	"time"
 
+	_ "time/tzdata"
+
 	core_config "github.com/tsvetkovdm/go-vpnbot/internal/core/config"
 	core_logger "github.com/tsvetkovdm/go-vpnbot/internal/core/logger"
 	core_pgx_pool "github.com/tsvetkovdm/go-vpnbot/internal/core/repository/postgres/pool/pgx"
