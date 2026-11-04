@@ -85,3 +85,12 @@ xray-dev-up:
 
 xray-dev-down:
 	@docker compose down vpnbot-xray-dev
+
+vpnbot-image-send:
+	@if [ -z "$(DEPLOY_HOST)" ]; then echo "Укажите DEPLOY_HOST=user@host"; exit 1; fi
+	docker compose build vpnbot
+	docker save vpnbot:latest | gzip | ssh $(DEPLOY_HOST) 'gunzip | docker load'
+
+vpnbot-start:
+	@mkdir -p ${PROJECT_ROOT}/out/logs
+	docker compose up -d --no-build vpnbot
