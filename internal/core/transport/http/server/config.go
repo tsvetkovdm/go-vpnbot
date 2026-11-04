@@ -19,6 +19,10 @@ func NewConfig() (Config, error) {
 		return Config{}, fmt.Errorf("envconfig process: %w", err)
 	}
 
+	if config.Addr == "" {
+		return Config{}, fmt.Errorf("HTTP_ADDR is empty")
+	}
+
 	return config, nil
 }
 
