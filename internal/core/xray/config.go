@@ -19,6 +19,10 @@ func NewConfig() (Config, error) {
 		return Config{}, fmt.Errorf("envconfig process: %w", err)
 	}
 
+	if config.APIAddr == "" {
+		return Config{}, fmt.Errorf("XRAY_API_ADDR is empty")
+	}
+
 	return config, nil
 }
 

@@ -9,20 +9,22 @@ import (
 )
 
 func NewBotAPI(config Config) (*tgbotapi.BotAPI, error) {
-	dialer, err := proxy.SOCKS5("tcp", config.ProxyAddr, nil, proxy.Direct)
-	if err != nil {
-		return nil, fmt.Errorf("create SOCKS5 dialer: %w", err)
-	}
+	httpClient := &http.Client{}
 
-	contextDialer, ok := dialer.(proxy.ContextDialer)
-	if !ok {
-		return nil, fmt.Errorf("SOCKS5 dialer does not implement ContextDialer")
-	}
+	if config.ProxyAddr != "" {
+		dialer, err := proxy.SOCKS5("tcp", config.ProxyAddr, nil, proxy.Direct)
+		if err != nil {
+			return nil, fmt.Errorf("create SOCKS5 dialer: %w", err)
+		}
 
-	httpClient := &http.Client{
-		Transport: &http.Transport{
+		contextDialer, ok := dialer.(proxy.ContextDialer)
+		if !ok {
+			return nil, fmt.Errorf("SOCKS5 dialer does not implement ContextDialer")
+		}
+
+		httpClient.Transport = &http.Transport{
 			DialContext: contextDialer.DialContext,
-		},
+		}
 	}
 
 	bot, err := tgbotapi.NewBotAPIWithClient(config.Token, tgbotapi.APIEndpoint, httpClient)

@@ -8,7 +8,7 @@ import (
 
 type Config struct {
 	Token     string `envconfig:"TOKEN" required:"true"`
-	ProxyAddr string `envconfig:"PROXY_ADDR" required:"true"`
+	ProxyAddr string `envconfig:"PROXY_ADDR"`
 }
 
 func NewConfig() (Config, error) {
