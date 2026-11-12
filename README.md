@@ -1,153 +1,30 @@
-# Go VPN Bot
+# go-vpnbot
 
-Telegram bot for administering a VPN service.
+A Go service that manages user subscriptions and access to an Xray proxy server.
 
-## Requirements
+- **Telegram bot** — users pick a plan and pay; admins confirm payments and manage users and plans.
+- **HTTP API** — serves each user's client configuration by a personal subscription link.
+- **Reconciler** — once a minute compares users in PostgreSQL with users in Xray and applies the difference via the Xray gRPC API.
 
-- Docker
-- Docker Compose
-- Git
-- `curl`
-- `Xray-core`
-- systemd
+## Stack
 
----
+Go · PostgreSQL (pgx) · Xray gRPC API · Docker Compose · golang-migrate · zap
 
-# Full Installation
+## How it works
 
-**1. Install Docker**
+
+- The bot, the HTTP server and the reconciler run in one process under `errgroup`: if one fails, the others shut down gracefully.
+- Code is split by feature (`internal/features/...`), each with `transport → service → repository` layers. Features don't import each other; they talk through small interfaces wired in `main.go`.
+- Concurrent updates are handled in the database: state transitions are conditions in `WHERE`, other changes use optimistic locking by `version`.
+- The reconciler only touches users it created and supports a dry-run mode.
+
+## Run
+
 ```bash
-curl -fsSL https://get.docker.com | sh
+cp .env.example .env    # fill in the bot token and DB settings
+make env-up             # start PostgreSQL
+make migrate-up         # apply migrations
+make vpnbot-deploy      # build and start the bot
 ```
 
-**2. Run Docker without sudo**
-```bash
-sudo usermod -aG docker $USER
-newgrp docker
-```
-
-**3. Install Xray-core**
-```bash
-sudo bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install
-```
-
-**4. Clone the project**
-```bash
-cd ~
-git clone https://github.com/tsvetkovdm/go-vpnbot.git
-cd go-vpnbot
-```
-
-**5. Configure the environment**
-```bash
-cp .env.example .env
-nano .env
-```
-
-**6. Start PostgreSQL**
-```bash
-mkdir -p out
-make env-up
-```
-
-**7. Run database migrations**
-```bash
-make migrate-up
-```
-
-**8. Deploy the bot**
-```bash
-make vpnbot-deploy
-```
-
-**9. Verify the installation**
-```bash
-make ps
-docker compose logs --tail=100 vpnbot
-sudo systemctl status xray
-```
-
----
-
-## Useful Commands
-
-
-**Check docker service status**
-```bash
-make ps
-```
-
-**View bot logs**
-```bash
-docker compose logs -f vpnbot
-```
-
-**View PostgreSQL logs**
-```bash
-docker compose logs -f vpnbot-postgres
-```
-
-**Check Xray status**
-```bash
-sudo systemctl status xray
-sudo journalctl -u xray -f
-```
-
-**Rebuild and deploy the bot**
-```bash
-make vpnbot-deploy
-```
-
-**Stop the bot**
-```bash
-make vpnbot-undeploy
-```
-
-**Run database migrations**
-```bash
-make migrate-up
-```
-
-**Roll back the last migration**
-```bash
-make migrate-down
-```
-
----
-
-# Data & Files
-
-PostgreSQL data is stored in:
-
-```text
-out/.pgdata/
-```
-
-Bot logs:
-
-```text
-out/logs/
-```
-
-Database migrations:
-
-```text
-migrations/
-```
-
-Environment configuration:
-
-```text
-.env
-```
-
----
-
-## Tech Stack
-
-- Go
-- Telegram Bot API
-- PostgreSQL
-- Docker / Docker Compose
-- Xray-core
-- `golang-migrate`
+Xray must be running with its API enabled; set its address in `XRAY_API_ADDR`.
